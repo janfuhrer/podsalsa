@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  podsalsa:
+    build: .
+    # image: ghcr.io/janfuhrer/podsalsa:latest
+    container_name: podsalsa
+    user: '65534'
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PODSALSA_LEVEL=debug

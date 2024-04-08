@@ -1,0 +1,27 @@
+# swap
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+# session
+Session.vim
+# temporary
+.netrwhist
+*~
+# auto-generated tag files
+tags
+# Apple
+.DS_Store
+# vscode
+.vscode/
+.decrypted~*
+
+# Test binary, build with `go test -c`
+*.test
+
+.idea/
+release/
+build/
+bin/
+.env
+
+# local binary
+podsalsa
