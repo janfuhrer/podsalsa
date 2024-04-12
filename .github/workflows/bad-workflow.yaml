@@ -4,7 +4,11 @@
 
 name: Bad-Workflow
 
-on: push
+# dont activate this workflow
+on:
+  pull_request:
+    branches:
+      - bad-branch-that-will-never-exist
 
 jobs:
   test:
