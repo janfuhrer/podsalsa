@@ -2,7 +2,9 @@
 
 ## Reporting a Vulnerability
 
-TODO: Describe how and where to report a vulnerability
+If you discover a security issue in this project, please report it by sending an email to [janfuhrer@mailbox.org](mailto:janfuhrer@mailbox.org).
+
+Thanks for helping to keep this project safe for everyone.
 
 ## Release
 

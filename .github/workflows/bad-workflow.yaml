@@ -1,0 +1,36 @@
+################################################
+## DO NOT USE THIS WORKFLOW IN A REAL PROJECT ##
+################################################
+
+name: Bad-Workflow
+
+# dont activate this workflow
+on:
+  pull_request:
+    branches:
+      - bad-branch-that-will-never-exist
+
+jobs:
+  test:
+    name: use a secret
+    runs-on: ubuntu-latest
+    env:
+      MY_SECRET: ${{ secrets.MY_SECRET }}
+    steps:
+    - name: Use a secret
+      run: echo $MY_SECRET
+    - name: Check commit message
+      run: |
+        message="${{ github.event.head_commit.message }}"
+        if [[ ! $message =~ ^.*:\ .*$ ]]; then
+            echo "Bad commit message"
+            exit 1
+        fi
+    - name: Check commit message (mitigate shell injection)
+      env:
+        MESSAGE: ${{ github.event.head_commit.message }}
+      run: |
+        if [[ ! $MESSAGE =~ ^.*:\ .*$ ]]; then
+            echo "Bad commit message"
+            exit 1
+        fi
