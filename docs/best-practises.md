@@ -24,15 +24,41 @@ jobs:
 
 ![Secrets](./assets/secrets-in-log.png)
 
-## Using CODEOWNERS file
+## Permissions & responsibilities
+
+### GITHUB TOKEN
+
+TODO
+
+### `pull_request` vs `pull_request_target`
+
+TODO 
+
+### Checkout action
+
+TODO: document `persist-credentials: false`
+
+### Preventing GitHub Actions from creating or approving pull requests
+
+To prevent a workflow from merging a pull request without human review, you can disable this in the repository settings. Go to the `Actions` tab in the repository settings and disable the `Allow GitHub Actions to create and approve pull requests` option.
+
+### Using CODEOWNERS file
 
 The `CODEOWNERS` file defines the individuals or teams responsible for the code in a repository. The file is used to automatically request reviews from the code owners when a pull request changes any of their files. The syntax of the file is described [here](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
 
-## Prevent script injection
+### Configure private vulnerability reporting
+
+To provide a secure way to report vulnerabilities, you can enable private vulnerability reporting. This allows security researchers to report vulnerabilities privately to repository maintainers without disclosing them to the public.
+
+Private vulnerability reporting can be enabled in the repository settings (see [GitHub documentation](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository#enabling-or-disabling-private-vulnerability-reporting-for-a-repository))
+
+## GitHub Action Best Practices
+
+### Prevent script injection
 
 A GitHub Actions workflow can be triggered by specific events such as push, pull request, new release, and so on. Each workflow trigger provides a [Github context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context) which contains information about the event. This can be the branch name, username, user email, pull request title and body, etc. All this input should be treated as potentially untrusted data, and make sure it doesn't flow into shell or API calls where it can be interpreted as code.
 
-### Example of a script injectinop attack with inline script
+#### Example of a script injectinop attack with inline script
 
 GitHub Actions support their own [expression syntax](https://docs.github.com/en/actions/learn-github-actions/contexts), which can be used to access the context data. The following example shows how to access the commit message from the context and check if it follows a certain pattern.
 
@@ -91,11 +117,23 @@ jobs:
 
 ![Mitigated script injection](./assets/mitigated-script-injection.png)
 
-## Using code scanning workflows 
+## Additional Workflows
+
+### Using third-party actions
+
+Third-party actions can be a significant security risk. A job can access repository secrets, possible has access to a shared directory between other jobs, or may be able to use the `GITHUB_TOKEN` to write to the repository. Always review the source code of the action and check the permissions it requires. Its recommended to **pin actions to a full length commit SHA** instead of a tag only. On the GitHub Marketplace, you can see "verified creator" badge which indicates that the action was written by a team whose identity has been verified by GitHub.
+
+You can use Dependabot to keep your actions up to date. Dependabot will automatically create pull requests to update your actions to the latest version.
+
+### Using Dependabot
+
+TODO: Add more information about Dependabot
+
+### Using code scanning workflows 
 
 To automatically scan your code for potential vulnerabilities, it's recommended that you use code scanning workflows. You can use [CodeQL](https://github.com/github/codeql) from GitHub or other third-party tools. CodeQL is an analysis engine that allows you to write queries to find vulnerabilities in your code. You can use the standard CodeQL queries written by GitHub researchers and community members, or write your own queries.
 
-**Enable CodeQL**
+**Using CodeQL**
 
 To enable CodeQL scanning, you need to add a workflow file to your repository. You can easily create the workflow in your repository settings.
 
@@ -109,8 +147,35 @@ If you choose `Advanced`, you can edit the workflow file and customize it to you
 
 After committing the workflow file, the code scanning will start automatically. You can see the results in the `Code scanning alerts` tab.
 
-## Configure private vulnerability reporting
+:info: See the [CodeQL Workflow Example](../.github/workflows/codeql.yaml) in this repository.
 
-To provide a secure way to report vulnerabilities, you can enable private vulnerability reporting. This allows security researchers to report vulnerabilities privately to repository maintainers without disclosing them to the public.
+## OpenSSF Scorecards
 
-Private vulnerability reporting can be enabled in the repository settings (see [GitHub documentation](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository#enabling-or-disabling-private-vulnerability-reporting-for-a-repository))
+The [OpenSSF Scorecards](https://github.com/ossf/scorecard) helps source maintainers to improve their security best practices by providing checks associated with software security and assigns a score for each check and the overall project. The scorecard can be integrated with a GitHub Actions workflow. The goal is to automate analysis and trust decisions on the security posture of open source projects.
+
+:info: See the [OpenSSF Workflow Example](../.github/workflows/scorecard.yaml) in this repository. The workflow creates an OpenSSF analysis and uploads the [SARIF](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning) results file to the security tab.
+
+---
+
+# Sources and further reading
+
+**GitHub documentation**
+
+- [Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
+- [Using secrets in GitHub Actions](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions)
+- [Using GitHub's security features to secure your use of GitHub Actions](https://docs.github.com/en/actions/security-guides/using-githubs-security-features-to-secure-your-use-of-github-actions)
+- [Automatic token authentication](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) (`GITHUB_TOKEN`)
+- [SARIF support for code scanning](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning)
+
+**Blogs**
+
+- Keeping your GitHub Actions and workflows secure
+  - [Part 1: Preventing pwn requests](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/)
+  - [Part 2: Untrusted input](https://securitylab.github.com/research/github-actions-untrusted-input/)
+  - [Part 3: How to trust your building blocks](https://securitylab.github.com/research/github-actions-building-blocks/)
+
+**Scorecard**
+
+- [Getting Started with Scorecard Checks for Supply Chain Security](https://github.com/ossf/scorecard/blob/main/docs/beginner-checks.md)
+- [Check Documentation](https://github.com/ossf/scorecard/blob/main/docs/checks.md)
+- [Scorecards' GitHub action](https://github.com/ossf/scorecard-action)
