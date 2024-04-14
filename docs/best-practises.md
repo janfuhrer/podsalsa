@@ -40,7 +40,7 @@ TODO: document `persist-credentials: false`
 
 ### Preventing GitHub Actions from creating or approving pull requests
 
-To prevent a workflow from merging a pull request without human review, you can disable this in the repository settings. Go to the `Actions` tab in the repository settings and disable the `Allow GitHub Actions to create and approve pull requests` option.
+To prevent a workflow from merging a pull request without human review, you can disable this in the repository settings. Go to the `Actions` tab in the repository settings and uncheck the `Allow GitHub Actions to create and approve pull requests` option.
 
 ### Using CODEOWNERS file
 
@@ -48,9 +48,9 @@ The `CODEOWNERS` file defines the individuals or teams responsible for the code 
 
 ### Configure private vulnerability reporting
 
-To provide a secure way to report vulnerabilities, you can enable private vulnerability reporting. This allows security researchers to report vulnerabilities privately to repository maintainers without disclosing them to the public.
+To provide a secure way of reporting vulnerabilities, you can enable private vulnerability reporting. This allows security researchers to report vulnerabilities privately to the maintainers of the repository without disclosing them to the public.
 
-Private vulnerability reporting can be enabled in the repository settings (see [GitHub documentation](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository#enabling-or-disabling-private-vulnerability-reporting-for-a-repository))
+Private vulnerability reporting can be enabled in the repository settings. (see [GitHub documentation](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository#enabling-or-disabling-private-vulnerability-reporting-for-a-repository))
 
 ## GitHub Action Best Practices
 
@@ -115,13 +115,13 @@ jobs:
         fi
 ```
 
-![Mitigated script injection](./assets/mitigated-script-injection.png)
+![Mitigated script injection](./assets/mitigate-script-injection.png)
 
 ## Additional Workflows
 
 ### Using third-party actions
 
-Third-party actions can be a significant security risk. A job can access repository secrets, possible has access to a shared directory between other jobs, or may be able to use the `GITHUB_TOKEN` to write to the repository. Always review the source code of the action and check the permissions it requires. Its recommended to **pin actions to a full length commit SHA** instead of a tag only. On the GitHub Marketplace, you can see "verified creator" badge which indicates that the action was written by a team whose identity has been verified by GitHub.
+Third party actions can be a significant security risk. A job may have access to repository secrets, may have access to a directory shared by other jobs, or may be able to use the `GITHUB_TOKEN` to write to the repository. Always check the source code of the action and the permissions it requires. It is recommended to **pin actions to a full-length commit SHA** rather than just a tag. In the GitHub Marketplace, you can see a "verified creator" badge, which indicates that the action was written by a team whose identity has been verified by GitHub.
 
 You can use Dependabot to keep your actions up to date. Dependabot will automatically create pull requests to update your actions to the latest version.
 
@@ -147,13 +147,23 @@ If you choose `Advanced`, you can edit the workflow file and customize it to you
 
 After committing the workflow file, the code scanning will start automatically. You can see the results in the `Code scanning alerts` tab.
 
-:info: See the [CodeQL Workflow Example](../.github/workflows/codeql.yaml) in this repository.
+ℹ️ See the [CodeQL Workflow Example](../.github/workflows/codeql.yaml) in this repository.
 
 ## OpenSSF Scorecards
 
-The [OpenSSF Scorecards](https://github.com/ossf/scorecard) helps source maintainers to improve their security best practices by providing checks associated with software security and assigns a score for each check and the overall project. The scorecard can be integrated with a GitHub Actions workflow. The goal is to automate analysis and trust decisions on the security posture of open source projects.
+The [OpenSSF Scorecards](https://github.com/ossf/scorecard) helps source maintainers improve their security best practices by providing checks related to software security and assigning a score for each check and the overall project. The scorecard can be integrated into a GitHub Actions workflow. The goal is to automate analysis and trust decisions about the security posture of open source projects.
 
-:info: See the [OpenSSF Workflow Example](../.github/workflows/scorecard.yaml) in this repository. The workflow creates an OpenSSF analysis and uploads the [SARIF](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning) results file to the security tab.
+After activating the scorecard workflow, the results are uploaded to the repository's security tab. The results are in the [SARIF](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning) format, which can be viewed in the GitHub UI.
+
+![scorecard results](./assets/scorecard-results.png)
+
+ℹ️ See the [OpenSSF Workflow Example](../.github/workflows/scorecard.yaml) in this repository.
+
+### Additional checks
+
+## OpenSSF Best Practices Badge
+
+The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a badge that indicates a project's security best practices score. The badge is generated based on the [OpenSSF Best Practices](https://www.bestpractices.dev/en/criteria/0) criteria. To get the badge, you need to register at the [OpenSSF Best Practices](https://www.bestpractices.dev/en) website and submit your repository. You will then need to answer a questionnaire about the project's security practices. The badge is generated based on the answers and is available once you have started answering the questionnaire. The badge can then be added to the repository's README file.
 
 ---
 
@@ -179,3 +189,8 @@ The [OpenSSF Scorecards](https://github.com/ossf/scorecard) helps source maintai
 - [Getting Started with Scorecard Checks for Supply Chain Security](https://github.com/ossf/scorecard/blob/main/docs/beginner-checks.md)
 - [Check Documentation](https://github.com/ossf/scorecard/blob/main/docs/checks.md)
 - [Scorecards' GitHub action](https://github.com/ossf/scorecard-action)
+
+**OpenSSF Best Practices**
+
+- [Sign Up](https://www.bestpractices.dev/en)
+- [Criterias](https://www.bestpractices.dev/en/criteria/0)
