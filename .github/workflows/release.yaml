@@ -18,8 +18,9 @@ jobs:
       tree-state: ${{ steps.ldflags.outputs.tree-state }}
     steps:
       - id: checkout
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
+          persist-credentials: false
           fetch-depth: 0
       - id: ldflags
         run: |
@@ -43,6 +44,7 @@ jobs:
           - amd64
           - arm64
     needs: args
+    # SHA cannot be used at the moment (https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md#referencing-the-slsa-builder)
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.10.0
     # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md#workflow-inputs
     with:

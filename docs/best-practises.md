@@ -115,7 +115,7 @@ jobs:
         fi
 ```
 
-![Mitigated script injection](./assets/mitigated-script-injection.png)
+![Mitigated script injection](./assets/mitigate-script-injection.png)
 
 ## Additional Workflows
 
