@@ -15,11 +15,9 @@ import (
 )
 
 // These variables are set in build step
-var Version = "0.0.0-dev.0"
+var Version = "v0.0.0-dev.0"
 var Commit = "none"
 var CommitDate = "unknown"
-
-//var TreeState string
 
 func main() {
 	fs := pflag.NewFlagSet("default", pflag.ContinueOnError)
