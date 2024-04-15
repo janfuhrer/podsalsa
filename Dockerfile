@@ -23,6 +23,8 @@ COPY go.mod go.sum main.go ./
 COPY pkg/ ./pkg/
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETPLATFORM} go build \
+  -trimpath \
+  -tags="netgo" \
   -ldflags "-s -w -X main.Version=${VERSION} -X main.Commit=${COMMIT_REF} -X main.CommitDate=${BUILD_DATE}" \
   -o podsalsa
 

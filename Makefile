@@ -22,7 +22,7 @@ go-tidy:
 	@echo "Go modules tidied."
 
 go-build:
-	go build -o $(NAME) -ldflags "-s -w -X main.Version=$(VERSION) -X main.Commit=$(COMMIT_REF) -X main.CommitDate=$(BUILD_DATE)" main.go
+	go build -o $(NAME) -trimpath -tags="netgo" -ldflags "-s -w -X main.Version=$(VERSION) -X main.Commit=$(COMMIT_REF) -X main.CommitDate=$(BUILD_DATE)" main.go
 	@echo "Go build completed."
 
 docker-build: EXTRA_FLAGS =
