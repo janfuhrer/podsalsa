@@ -23,5 +23,8 @@ build/
 bin/
 .env
 
+# docker buildx attestation directory
+out/
+
 # local binary
 podsalsa

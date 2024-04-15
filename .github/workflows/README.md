@@ -11,13 +11,15 @@ The release workflow is triggered by a new Git tag and performs the following st
 - TODO: Upload the sbom, binaires, checksums to GitHub Releases
 - TODO: Pushes the container images to GitHub Container Registry and DockerHub
 
-| Workflow                           | Jobs         | Runners       | Description                                                  |
-| :--------------------------------- | :----------- | :------------ | :----------------------------------------------------------- |
-| [codecov.yaml](./codecov.yaml)     | `analyze`    | Github Ubuntu | Code analysis of Codecov                                     |
-| [codeql.yaml](./codeql.yaml)       | `analyze`    | Github Ubuntu | Code analysis of CodeQL                                      |
-| [release.yaml](./release.yaml)     | `args`       | Github Ubuntu | Get variables for go build                                   |
-| [release.yaml](./release.yaml)     | `go-release` | Github Ubuntu | Release the go-binaries for multiple platforms               |
-| [scorecard.yaml](./scorecard.yaml) | `analysis`   | Github Ubuntu | Create OpenSSF analysis, upload SARIF result to security tab |
+| Workflow                           | Jobs             | Runners       | Description                                                  |
+| :--------------------------------- | :--------------- | :------------ | :----------------------------------------------------------- |
+| [codecov.yaml](./codecov.yaml)     | `analyze`        | Github Ubuntu | Code analysis of Codecov                                     |
+| [codeql.yaml](./codeql.yaml)       | `analyze`        | Github Ubuntu | Code analysis of CodeQL                                      |
+| [release.yaml](./release.yaml)     | `args`           | Github Ubuntu | Get variables for go build                                   |
+| [release.yaml](./release.yaml)     | `go-release`     | Github Ubuntu | Release the go-binaries for multiple platforms               |
+| [scorecard.yaml](./scorecard.yaml) | `analysis`       | Github Ubuntu | Create OpenSSF analysis, upload SARIF result to security tab |
+| [osv-pr.yaml](./osv-pr.yaml)       | `scan-pr`        | Github Ubuntu | OSV-Scanner on new pull-request                              |
+| [osv-scan.yaml](./osv-scan.yaml)   | `scan-scheduled` | Github Ubuntu | Scheduled OSV-Scanner                                        |
 
 ## CodeQL
 
@@ -26,6 +28,10 @@ TODO: describe workflow
 ## Scorecards
 
 TODO: describe workflow
+
+## OSV-Scanner
+
+[OSV-Scanner](https://google.github.io/osv-scanner/) to find existing vulnerabilites affecting dependencies in the project.
 
 ## Gosec
 
