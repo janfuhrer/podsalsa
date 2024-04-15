@@ -1,15 +1,39 @@
-NAME:=podsalsa
-DOCKER_REPOSITORY:=janfuhrer
-DOCKER_IMAGE_NAME:=$(DOCKER_REPOSITORY)/$(NAME)
-GIT_COMMIT:=$(shell git describe --dirty --always)
-DATE:=`date +%Y-%m-%d`
-VERSION:=0.0.0-dev.0
+NAME := podsalsa
+DOCKER_REPOSITORY := janfuhrer
+DOCKER_IMAGE_NAME := $(DOCKER_REPOSITORY)/$(NAME)
+BUILD_DATE := $(shell date -Iseconds)
+VERSION := $(shell cat .version)
+# Adds "-dirty" suffix if there are uncommitted changes in the git repository
+COMMIT_REF:=$(shell git describe --dirty --always)
+EXTRA_FLAGS ?=
 
-tidy:
-	rm -f go.sum; go mod tidy -compat=1.22
+# Base Docker build command
+DOCKER_BUILDX_BASE = docker buildx build \
+	--build-arg "BUILD_DATE=$(BUILD_DATE)" \
+	--build-arg "VERSION=$(VERSION)" \
+	--build-arg "COMMIT_REF=$(COMMIT_REF)" \
+	-t $(DOCKER_IMAGE_NAME):$(VERSION) \
+	$(EXTRA_FLAGS) .
 
-build:
-	go build -o $(NAME) -ldflags "-s -w -X main.Version=$(VERSION) -X main.Commit=$(GIT_COMMIT) -X main.CommitDate=$(DATE)" main.go
+.PHONY: go-tidy go-build docker-build docker-build-with-provenance
 
-build-container:
-	docker build -t $(DOCKER_IMAGE_NAME):$(VERSION) .
+go-tidy:
+	go mod tidy -compat=1.22
+	@echo "Go modules tidied."
+
+go-build:
+	go build -o $(NAME) -ldflags "-s -w -X main.Version=$(VERSION) -X main.Commit=$(COMMIT_REF) -X main.CommitDate=$(BUILD_DATE)" main.go
+	@echo "Go build completed."
+
+docker-build: EXTRA_FLAGS =
+docker-build:
+	$(DOCKER_BUILDX_BASE)
+	@echo "Docker build completed."
+
+# IMPORTANT: enable "containerd image store" in Docker Desktop settings
+#            to use "--sbom" and "--provenance" flags
+#            https://docs.docker.com/desktop/containerd/
+docker-build-with-provenance: EXTRA_FLAGS = --sbom=true --provenance=true --output type=local,dest=out
+docker-build-with-provenance:
+	$(DOCKER_BUILDX_BASE)
+	@echo "Docker build with SBOM and provenance completed."
