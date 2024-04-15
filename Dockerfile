@@ -3,19 +3,21 @@
 # include build-time dependencies to sbom
 ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
 
-# define default values for build arguments
 ARG BASE_IMAGE_BUILDER=golang
 ARG GO_VERSION=1.22
-ARG BUILD_DATE="1970-01-01T00:00:00Z"
-ARG VERSION="v0.0.0-dev.0"
-ARG COMMIT_REF="no-ref"
-## use following two commands to get the latest digest with valid signature
-# cosign verify gcr.io/distroless/static:nonroot --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
-# cosign triangulate gcr.io/distroless/static:nonroot | cut -d'-' -f2 | cut -d'.' -f1
+
+# use following two commands to get the latest digest with valid signature
+#     cosign verify gcr.io/distroless/static:nonroot --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
+#     cosign triangulate gcr.io/distroless/static:nonroot | cut -d'-' -f2 | cut -d'.' -f1
 ARG DISTROLESS_DIGEST=f41b84cda410b05cc690c2e33d1973a31c6165a2721e2b5343aab50fecb63441
 
 # builder
 FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE_BUILDER}:${GO_VERSION}-alpine AS builder
+
+ARG BUILD_DATE
+ARG VERSION
+ARG COMMIT_REF
+
 WORKDIR /build
 COPY go.mod go.sum main.go ./
 COPY pkg/ ./pkg/
