@@ -15,6 +15,7 @@ type Config struct {
 	Version    string `mapstructure:"version"`
 	CommitDate string `mapstructure:"commitDate"`
 	Commit     string `mapstructure:"commit"`
+	UIPath     string `mapstructure:"uiPath"`
 }
 
 type Server struct {

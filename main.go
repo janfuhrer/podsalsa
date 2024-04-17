@@ -24,6 +24,7 @@ func main() {
 	fs.String("host", "", "Host to bind service to")
 	fs.Int("port", 8080, "Port to bind service to")
 	fs.String("level", "info", "Log level debug, info, warn, error, panic, fatal")
+	fs.String("ui-path", "ui", "Path to UI files")
 
 	// Parse the flags
 	err := fs.Parse(os.Args[1:])
@@ -37,19 +38,28 @@ func main() {
 	}
 
 	// bind flags and environment variables
-	viper.BindPFlags(fs)
+	if err := viper.BindPFlags(fs); err != nil {
+		fmt.Fprintf(os.Stderr, "error binding flags and environment variables: %v\n", err.Error())
+		os.Exit(2)
+	}
 	hostname, _ := os.Hostname()
 	viper.Set("hostname", hostname)
 	viper.Set("version", Version)
 	viper.Set("commit", Commit)
 	viper.Set("commitdate", CommitDate)
+	viper.Set("uiPath", viper.GetString("ui-path"))
 	viper.SetEnvPrefix("PODSALSA")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
 	// configure logging
 	logger, _ := initZap(viper.GetString("level"))
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			fmt.Fprintf(os.Stderr, "error creating logger: %v\n", err.Error())
+			os.Exit(2)
+		}
+	}()
 	stdLog := zap.RedirectStdLog(logger)
 	defer stdLog()
 
@@ -71,6 +81,7 @@ func main() {
 		zap.String("commit", Commit),
 		zap.String("commitDate", CommitDate),
 		zap.String("port", srvCfg.Port),
+		zap.String("uiPath", srvCfg.UIPath),
 	)
 
 	// start HTTP server
