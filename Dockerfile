@@ -3,8 +3,8 @@
 # include build-time dependencies to sbom
 ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
 
-ARG BASE_IMAGE_BUILDER=golang
-ARG GO_VERSION=1.22
+ARG BASE_IMAGE=golang:1.22-alpine
+ARG BASE_IMAGE_DIGEST=963da5f97ab931c0df6906e8c0ebc7db28c88d013735ae020f9558c3e6cf0580
 
 # use following two commands to get the latest digest with valid signature
 #     cosign verify gcr.io/distroless/static:nonroot --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
@@ -12,7 +12,7 @@ ARG GO_VERSION=1.22
 ARG DISTROLESS_DIGEST=f41b84cda410b05cc690c2e33d1973a31c6165a2721e2b5343aab50fecb63441
 
 # builder
-FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE_BUILDER}:${GO_VERSION}-alpine AS builder
+FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE}@sha256:${BASE_IMAGE_DIGEST} AS builder
 
 ARG BUILD_DATE
 ARG VERSION

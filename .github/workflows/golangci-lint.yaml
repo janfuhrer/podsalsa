@@ -1,12 +1,12 @@
 name: "GoLangCI Lint"
+
 on:
   push:
     branches: [ "*" ]
   pull_request:
     branches: [ "*" ]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   lint:
