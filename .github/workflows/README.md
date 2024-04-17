@@ -13,7 +13,6 @@ The release workflow is triggered by a new Git tag and performs the following st
 
 | Workflow                           | Jobs             | Runners       | Description                                                  |
 | :--------------------------------- | :--------------- | :------------ | :----------------------------------------------------------- |
-| [codecov.yaml](./codecov.yaml)     | `analyze`        | Github Ubuntu | Code analysis of Codecov                                     |
 | [codeql.yaml](./codeql.yaml)       | `analyze`        | Github Ubuntu | Code analysis of CodeQL                                      |
 | [release.yaml](./release.yaml)     | `args`           | Github Ubuntu | Get variables for go build                                   |
 | [release.yaml](./release.yaml)     | `go-release`     | Github Ubuntu | Release the go-binaries for multiple platforms               |
