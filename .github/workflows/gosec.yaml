@@ -1,4 +1,4 @@
-name: "gosec Security Scan"
+name: "Gosec Security Scan"
 
 on:
   push:

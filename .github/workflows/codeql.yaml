@@ -43,6 +43,9 @@ jobs:
         build-mode: ${{ matrix.build-mode }}
 
     - if: matrix.build-mode == 'manual'
+      env:
+        # fix "go: download go1.22 for linux/amd64: toolchain not available" error
+        GOTOOLCHAIN: "local go version"
       run: |
         make go-build
 
