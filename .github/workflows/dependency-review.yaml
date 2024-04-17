@@ -25,8 +25,8 @@ jobs:
         with:
           # fail if a pull request introduce vulnerabilities of level "low" or higher
           fail-on-severity: low
-          # allowed licenses, the action will fail if a new dependencies with a license not in this list is introduced
+          # allowed licenses in SPDX format, the action will fail if a new dependencies with a license not in this list is introduced
           # if the license cant be detected, the action will inform but not fail
-          allow-licenses: 'Apache-2.0'
+          allow-licenses: 'Apache-2.0, MIT, GPL-3.0-or-later'
           # threshold for the OpenSSF Scorecard level, the action will get a warning in the CI
           warn-on-openssf-scorecard-level: 3
