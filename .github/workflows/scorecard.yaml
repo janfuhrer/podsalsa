@@ -6,7 +6,7 @@ on:
   # To guarantee Maintained check is occasionally updated. See
   # https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained
   schedule:
-    - cron: '35 16 * * 6'
+    - cron: '00 14 * * 1'
   push:
     branches: [ "main" ]
 
@@ -14,7 +14,7 @@ on:
 permissions: read-all
 
 jobs:
-  analysis:
+  analyze:
     name: Scorecard analysis
     runs-on: ubuntu-latest
     permissions:

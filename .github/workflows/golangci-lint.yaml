@@ -9,8 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  golangci:
-    name: lint
+  lint:
     runs-on: ubuntu-latest
     steps:
       - id: checkout
