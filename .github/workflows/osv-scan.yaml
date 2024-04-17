@@ -11,8 +11,10 @@ on:
 permissions:
   contents: read
   # Require writing security events to upload SARIF file to security tab
-  security-events: write
+
 
 jobs:
   analyze:
+    permissions:
+      security-events: write
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@1f1242919d8a60496dd1874b24b62b2370ed4c78" #v1.7.1
