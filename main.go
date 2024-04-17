@@ -24,6 +24,7 @@ func main() {
 	fs.String("host", "", "Host to bind service to")
 	fs.Int("port", 8080, "Port to bind service to")
 	fs.String("level", "info", "Log level debug, info, warn, error, panic, fatal")
+	fs.String("ui-path", "ui", "Path to UI files")
 
 	// Parse the flags
 	err := fs.Parse(os.Args[1:])
@@ -46,6 +47,7 @@ func main() {
 	viper.Set("version", Version)
 	viper.Set("commit", Commit)
 	viper.Set("commitdate", CommitDate)
+	viper.Set("uiPath", viper.GetString("ui-path"))
 	viper.SetEnvPrefix("PODSALSA")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
@@ -79,6 +81,7 @@ func main() {
 		zap.String("commit", Commit),
 		zap.String("commitDate", CommitDate),
 		zap.String("port", srvCfg.Port),
+		zap.String("uiPath", srvCfg.UIPath),
 	)
 
 	// start HTTP server

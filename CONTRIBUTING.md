@@ -46,3 +46,11 @@ We check the code with [golangci-lint](https://github.com/golangci/golangci-lint
 ```bash
 golangci-lint run
 ```
+
+## goimports
+
+We have a pre-commit hook that runs goimports to update the Go import lines, adding missing ones and remove unreferenced ones. You can install it with:
+
+```bash
+go install golang.org/x/tools/cmd/goimports@latest
+```

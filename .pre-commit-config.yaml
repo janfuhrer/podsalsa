@@ -20,6 +20,8 @@ repos:
     hooks:
       - id: go-fmt
       - id: no-go-testing
+      - id: go-imports
+      - id: go-unit-tests
   - repo: https://github.com/golangci/golangci-lint
     rev: v1.57.2
     hooks:
