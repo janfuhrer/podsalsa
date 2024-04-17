@@ -37,7 +37,10 @@ func main() {
 	}
 
 	// bind flags and environment variables
-	viper.BindPFlags(fs)
+	if err := viper.BindPFlags(fs); err != nil {
+		fmt.Fprintf(os.Stderr, "error binding flags and environment variables: %v\n", err.Error())
+		os.Exit(2)
+	}
 	hostname, _ := os.Hostname()
 	viper.Set("hostname", hostname)
 	viper.Set("version", Version)
@@ -49,7 +52,12 @@ func main() {
 
 	// configure logging
 	logger, _ := initZap(viper.GetString("level"))
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			fmt.Fprintf(os.Stderr, "error creating logger: %v\n", err.Error())
+			os.Exit(2)
+		}
+	}()
 	stdLog := zap.RedirectStdLog(logger)
 	defer stdLog()
 

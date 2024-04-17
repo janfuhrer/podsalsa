@@ -8,8 +8,7 @@ import (
 func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.New("index.html").ParseFiles("./ui/index.html")
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("./ui/index.html" + err.Error()))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
