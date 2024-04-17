@@ -14,37 +14,60 @@ Following workflows are implemented in the repository.
 | [gosec.yaml](./gosec.yaml)                         | `analyze`           | push/pr on `*`                         | -            | Inspects source code for security problems in Go code                                            |
 | [osv-scan.yaml](./osv-scan.yaml)                   | `analyze`           | push/pr to `main`, cron: `30 13 * * 1` | yes          | Scanning for vulnerabilites in dependencies                                                      |
 | [release.yaml](./release.yaml)                     | `args`              | push tag `v*`                          | -            | Get variables for go build                                                                       |
-| [release.yaml](./release.yaml)                     | `go-release`        | push tag `v*`                          | -            | Release the go-binaries for multiple platforms                                                   |
+|                                                    | `go-release`        | push tag `v*`                          | -            | Release the go-binaries for multiple platforms                                                   |
 | [scorecard.yaml](./scorecard.yaml)                 | `analyze`           | push to `main`, cron: `00 14 * * 1`    | yes          | Create OpenSSF analysis and create project score                                                 |
 
 ## CodeQL
 
-TODO: describe workflow
+Action: https://github.com/github/codeql-action
+
+[CodeQL](https://codeql.github.com/) is a semantic code analysis engine that can find security vulnerabilities in codebases. The workflow displays security alerts in the repository's Security tab or in pull requests.
 
 ## Dependency Review
 
-TODO: describe workflow
+Action: https://github.com/actions/dependency-review-action
+
+This action scans the dependency manifest files that change as part of a pull request, revealing known-vulnerable versions of the packages declared or updated in the PR. Pull requests that introduce known-vulnerable packages will be blocked from merging.
+It also allows you to define a list of licenses that are allowed or disallowed in the project, and will check if the PR introduces a dependency with a disallowed license.
+It also checks the OpenSSF scorecard for all dependencies and allows to warn if a dependency has a low score.
 
 ## FOSSA
 
-TODO: Check implementation of the FOSSA workflow (https://github.com/fossa-contrib/fossa-action)
+Action: https://github.com/fossa-contrib/fossa-action
+
+[FOSSA](https://fossa.com/) is a dependency analysis tool that scans the project for dependencies and checks for vulnerabilities and licenses. The workflow uploads the results to the FOSSA dashboard. The link to the dashboard is available in the README file by clicking on one of the FOSSA badges.
+
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=license) [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=security)
+
 
 ## GolangCI-Lint
 
-TODO: describe workflow
+Action: https://github.com/golangci/golangci-lint-action
+
+[GolangCI-Lint](https://golangci-lint.run/) is a fast Go linters runner. It runs linters in parallel, uses caching, and works on Linux, macOS, and Windows. The workflow runs the linters on the Go code in the repository.
 
 ## Gosec
 
-TODO: describe workflow (https://github.com/securego/gosec)
+Action: https://github.com/securego/gosec
+
+[Gosec](https://securego.io/) is a security tool that performs static code analysis of Go code. The workflow scans the Go code in the repository for security issues.
 
 ## OSV-Scan
 
-[OSV-Scanner](https://google.github.io/osv-scanner/) to find existing vulnerabilites affecting dependencies in the project.
+Action: https://github.com/google/osv-scanner-action
 
-## Release
+[OSV-Scan](https://osv.dev/) is a vulnerability database and triage infrastructure for open-source projects. The [OSV-Scanner](https://google.github.io/osv-scanner/) finds vulnerabilities in dependencies of an project and uploads the results to the Security tab of the repository.
 
-TODO: describe workflow
+## Go-Release
+
+Action: https://github.com/slsa-framework/slsa-github-generator/tree/v1.10.0
+
+The release workflow generates the go binaries with SLSA Build Level 3 provenance and uploads them to the release page. The workflow also creates a release draft with the changelog and the binaries attached which can be published by the user.  
 
 ## Scorecards
 
-TODO: describe workflow
+Action: https://github.com/ossf/scorecard-action
+
+[Scorecards](https://github.com/ossf/scorecard) is a tool that provides a security score for open-source projects. The workflow runs the scorecard on the repository and uploads the results to the Security tab of the repository. There is also a report on the OpenSSF website, the link is available in the README file by clicking on the OpenSSF Scorecard badge.
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/janfuhrer/podsalsa/badge)](https://securityscorecards.dev/viewer/?uri=github.com/janfuhrer/podsalsa)

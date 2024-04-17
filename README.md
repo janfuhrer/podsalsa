@@ -19,9 +19,10 @@ The goal of this project is to provide a simple example of a Go application on G
 
 ## Work in Progress 🏗️
 
+- [x] Document Workflows
+- [x] OpenSSF best practices
+- [x] Resolve "Code Scanning" alerts (as far as possible)
 - [ ] Document GitHub Actions Best Practices -> *in progress*
-- [ ] Document Workflows -> *in progress*
-- [ ] OpenSSF best practices -> *in progress*
 - [ ] Implement the release workflow for sbom, docker images, code scanning, and signing
   - [x] Create the go binaries for multiple platforms
   - [x] Go lint and security scans
@@ -31,7 +32,6 @@ The goal of this project is to provide a simple example of a Go application on G
   - [ ] Upload the sbom, binaires, checksums to GitHub Releases
   - [ ] Pushes the container images to GitHub Container Registry and Harbor registry
 - [ ] Document Security Policy (Verifying the release artifacts)
-- [ ] Resolve "Code Scanning" alerts
 
 ## Documentation
 
