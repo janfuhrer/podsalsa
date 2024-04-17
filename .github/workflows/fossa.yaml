@@ -9,7 +9,7 @@ on:
 permissions: {}
 
 jobs:
-  fossa-scan:
+  analyze:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout Code"
