@@ -22,7 +22,7 @@ The goal of this project is to provide a simple example of a Go application on G
 - [x] Document Workflows
 - [x] OpenSSF best practices
 - [x] Resolve "Code Scanning" alerts (as far as possible)
-- [ ] Document GitHub Actions Best Practices -> *in progress*
+- [x] Document GitHub Actions Best Practices
 - [ ] Implement the release workflow for sbom, docker images, code scanning, and signing
   - [x] Create the go binaries for multiple platforms
   - [x] Go lint and security scans

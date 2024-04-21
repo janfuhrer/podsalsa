@@ -2,9 +2,11 @@
 
 This document provides an overview of best practices for writing and maintaining GitHub Actions. For the full detailed security hardening guide, see the [GitHub Actions Security Hardening Guide](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions).
 
-## Using secrets
+## Secrets
 
-Always use secrets for sensitive data such as API keys, passwords and tokens. Never hardcode secrets into workflow files. Secrets are encrypted and stored in GitHub, and are never printed in the logs. However, secrets can be transformed in various ways and somehow exposed in the logs (see example in chapter [Example with inline script](#example-with-inline-script)).
+### Using secrets
+
+Always use secrets for sensitive data such as API keys, passwords and tokens. Never hardcode secrets into workflow files. Secrets are encrypted and stored in GitHub, and are never printed in the logs. However, secrets can be transformed in various ways and somehow exposed in the logs (see the example in chapter [Example with inline script](#example-with-inline-script)).
 
 Documentation on how to use secrets in GitHub Actions can be found [here](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions).
 
@@ -24,27 +26,69 @@ jobs:
 
 ![Secrets](./assets/secrets-in-log.png)
 
+### Secret scanning
+
+Secret scanning alerts is available for free on all public repositories on GitHub. It can be enabled in the repository settings under `Code security and analysis/Secret scanning`. When enabled, GitHub scans the repository for known secret patterns and alerts the repository owner via email if any secrets are found and create an alert in the repository's security tab. Additionally, a push protection can be enabled to prevent the push of secrets to the repository.
+
 ## Permissions & responsibilities
 
 ### GITHUB TOKEN
 
-TODO
+The GitHub Actions runner automatically receives the `GITHUB_TOKEN` with permissions limited to the repository containing the workflow. The token expires after the job has finished. The permissions can be set per action on a global level and/or on a job level. To prevent the token from being exfiltrated and used maliciously, there are some best practices to follow:
+
+**Default workflow permissions**
+
+You can choose the default permissions granted to the `GITHUB_TOKEN` [at the repository level](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#setting-the-permissions-of-the-github_token-for-your-repository). Go to the repository settings, then `Actions/General' and `Workflow permissions'. Here you can set the default permissions to "Read repository contents and packages permissions" and dissallow GitHub Actions to create and approve pull requests.
+
+![Workflow permissions](./assets/workflow-permissions.png)
+
+**Set permissions**
+
+An overview of the permissions that can be set for the `GITHUB_TOKEN` can be found [here](https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs). To follow the principle of least privilege, you should only grant the permissions needed to run the job on a per-job basis. An example of setting permissions for a job only:
+
+```yaml
+# global permissions for every job
+# disable all permissions with "{}"
+permissions: {}
+
+jobs:
+  job_name:
+    # job specific permissions
+    permissions:
+      security-events: write
+      packages: read
+    ...
+```
 
 ### `pull_request` vs `pull_request_target`
 
-TODO 
+The GitHub workflows can be triggered by various events, such as `push`, `pull_request`, `release`, etc. A workflow triggered by `pull_request` has access to the secrets of the repository and can make changes to the repository (if the appropriate write permissions are set). This is only true for pull requests made from the same repository. 
+
+If a person has forked the repository and now creates a pull request in the original repository, the `pull_request` trigger will not be allowed to write to the repository or have access to the repository's secrets.
+
+There is another event called `pull_request_target` which allows the workflow to run with the permissions of the target repository. This means that the workflow can write to the repository and access the secrets. This event should be used with caution, as it can be a security risk. Any automated processing of PRs from an external fork is potentially dangerous, and such PRs should be treated as untrusted input. A malicious actor could create a PR that triggers a workflow that exfiltrates secrets from the build system (e.g. by creating a new workflow or adding new test cases that send the secrets to a remote server).
+
+In general it is recommended to use the `pull_request` event for workflows that don't require write access to the repository, and to avoid using `pull_request_target`.
+
+There is a [blog post from GitHub](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) that explains the risks of using `pull_request_target` and how to use it safely if necessary.
 
 ### Checkout action
 
-TODO: document `persist-credentials: false`
+The [Checkout](https://github.com/actions/checkout) action is used to check out the repository code, which is necessary for most workflows. The action has a parameter `persist-credentials` which is set to `true` by default. This can be useful if a subsequent action needs to run authenticated git commands. However, this can be a security risk as the credentials are stored in the runner's workspace and can be accessed by other actions. It is recommended to set `persist-credentials` to `false` to prevent the credentials from being stored.
 
-### Preventing GitHub Actions from creating or approving pull requests
-
-To prevent a workflow from merging a pull request without human review, you can disable this in the repository settings. Go to the `Actions` tab in the repository settings and uncheck the `Allow GitHub Actions to create and approve pull requests` option.
+```yaml
+jobs:
+  dependency-review:
+    steps:
+      - id: checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+        with:
+          persist-credentials: false
+```
 
 ### Using CODEOWNERS file
 
-The `CODEOWNERS` file defines the individuals or teams responsible for the code in a repository. The file is used to automatically request reviews from the code owners when a pull request changes any of their files. The syntax of the file is described [here](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+The `CODEOWNERS` file defines the individuals or teams responsible for the code in a repository. The file is used to automatically request reviews from the code owners when a pull request changes one of their files. The syntax of the file is described [here](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
 
 ### Configure private vulnerability reporting
 
@@ -84,6 +128,8 @@ The problem with this approach is the `run` operation, which starts a temporary 
 ![Script injection](./assets/script-injection.png)
 
 The value of the `MY_SECRET` secret will be printed in the logs (line 10-11)!
+
+See the [bad-workflow](./examples/bad-workflow.yaml) for the full example.
 
 ### Mitigating script injection attacks
 
@@ -127,7 +173,25 @@ You can use Dependabot to keep your actions up to date. Dependabot will automati
 
 ### Using Dependabot
 
-TODO: Add more information about Dependabot
+Dependabot is a tool that automatically creates pull requests to update dependencies in the repository. It can be used to keep all actions up-to-date and ensure that the latest security patches are applied.
+
+The following features are available:
+
+- **Dependabot alerts**: Dependabot alerts notify you about vulnerabilities in the dependencies. It creates an alert in the repository's security tab and in the dependency graph.
+- **Dependabot security updates**: Triggered by Dependabot alerts, Dependabot security updates create pull requests to update the dependencies to a secure version.
+- **Dependabot version updates**: Scheduled updates to keep dependencies up to date, is configurable in the `dependabot.yml` file.
+
+**Secrets**
+
+When a Dependabot event triggers a workflow, the only secrets available to the workflow are Dependabot secrets. GitHub Actions secrets are not available. Therefore, any secrets used by a workflow triggered by Dependabot events must be stored as Dependabot secrets.
+
+**Configuration**
+
+Dependabot can be enabled in the repository settings under `Code security and analysis/Dependabot`. 
+
+The scheduled updates can be configured in the `dependabot.yml` file. See the configuration file [dependabot.yml](../.github/dependabot.yml) in this repository for an example of how to configure Dependabot version updates for GitHub Actions, docker and gomod.
+
+All configuration options for the `dependabot.yml` file can be found [here](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file).
 
 ### Using code scanning workflows 
 
@@ -161,9 +225,19 @@ After activating the scorecard workflow, the results are uploaded to the reposit
 
 ### Additional checks
 
+## Workflow examples
+
+Have a look at the [workflows](../.github/workflows/) in this repository for general workflows to improve the security of your repository and specific go-related workflows.
+
 ## OpenSSF Best Practices Badge
 
 The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a badge that indicates a project's security best practices score. The badge is generated based on the [OpenSSF Best Practices](https://www.bestpractices.dev/en/criteria/0) criteria. To get the badge, you need to register at the [OpenSSF Best Practices](https://www.bestpractices.dev/en) website and submit your repository. You will then need to answer a questionnaire about the project's security practices. The badge is generated based on the answers and is available once you have started answering the questionnaire. The badge can then be added to the repository's README file.
+
+## Dependency graph
+
+By default, GitHub enables the dependency graph for public repositories. The dependency graph shows the *direct* and *transitive* dependencies of a repository, and is updated automatically. The graph is generated based on the package manifest files in the repository. It can be useful to see which packages are used in the repository, and which repositories depend on the repository. The dependency graph can be found in the `Insights` tab of the repository.
+
+The dependency graph can be exported as an SPDX-compliant software bill of materials (SBOM) from the `Insights` tab.
 
 ---
 
@@ -173,9 +247,14 @@ The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a
 
 - [Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
 - [Using secrets in GitHub Actions](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions)
+- [About secret scanning](https://docs.github.com/en/enterprise-cloud@latest/code-security/secret-scanning/about-secret-scanning#about-secret-scanning-for-partner-patterns)
+- [About supply chain security](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security)
 - [Using GitHub's security features to secure your use of GitHub Actions](https://docs.github.com/en/actions/security-guides/using-githubs-security-features-to-secure-your-use-of-github-actions)
+- [Managing GitHub Actions settings for a repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)
+- [Assigning permissions to jobs](https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs)
 - [Automatic token authentication](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) (`GITHUB_TOKEN`)
 - [SARIF support for code scanning](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning)
+- [Keeping your supply chain secure with Dependabot](https://docs.github.com/en/code-security/dependabot)
 
 **Blogs**
 

@@ -7,15 +7,15 @@ Following workflows are implemented in the repository.
 
 | Workflow                                           | Jobs                | Trigger                                | SARIF upload | Description                                                                                      |
 | :------------------------------------------------- | :------------------ | :------------------------------------- | :----------- | ------------------------------------------------------------------------------------------------ |
-| [codeql.yaml](./codeql.yaml)                       | `analyze`           | push/pr to `main`, cron: `00 13 * * 1` | yes          | Semantic code analysis                                                                           |
-| [dependency-review.yaml](./dependency-review.yaml) | `dependency-review` | pr to `main`                           | -            | Check pull request for vulnerabilities in dependencies or invalid licenses are being introduced. |
-| [fossa.yaml](./fossa.yaml)                         | `analyze`           | push/pr on `*`                         | -            | FOSSA analysis                                                                                   |
-| [golangci-lint.yaml](./golangci-lint.yaml)         | `lint`              | push/pr on `*`                         | -            | Lint Go Code                                                                                     |
-| [gosec.yaml](./gosec.yaml)                         | `analyze`           | push/pr on `*`                         | -            | Inspects source code for security problems in Go code                                            |
-| [osv-scan.yaml](./osv-scan.yaml)                   | `analyze`           | push/pr to `main`, cron: `30 13 * * 1` | yes          | Scanning for vulnerabilites in dependencies                                                      |
-| [release.yaml](./release.yaml)                     | `args`              | push tag `v*`                          | -            | Get variables for go build                                                                       |
+| [codeql.yml](./codeql.yml)                       | `analyze`           | push/pr to `main`, cron: `00 13 * * 1` | yes          | Semantic code analysis                                                                           |
+| [dependency-review.yml](./dependency-review.yml) | `dependency-review` | pr to `main`                           | -            | Check pull request for vulnerabilities in dependencies or invalid licenses are being introduced. |
+| [fossa.yml](./fossa.yml)                         | `analyze`           | push/pr on `*`                         | -            | FOSSA analysis                                                                                   |
+| [golangci-lint.yml](./golangci-lint.yml)         | `lint`              | push/pr on `*`                         | -            | Lint Go Code                                                                                     |
+| [gosec.yml](./gosec.yml)                         | `analyze`           | push/pr on `*`                         | -            | Inspects source code for security problems in Go code                                            |
+| [osv-scan.yml](./osv-scan.yml)                   | `analyze`           | push/pr to `main`, cron: `30 13 * * 1` | yes          | Scanning for vulnerabilites in dependencies                                                      |
+| [release.yml](./release.yml)                     | `args`              | push tag `v*`                          | -            | Get variables for go build                                                                       |
 |                                                    | `go-release`        | push tag `v*`                          | -            | Release the go-binaries for multiple platforms                                                   |
-| [scorecard.yaml](./scorecard.yaml)                 | `analyze`           | push to `main`, cron: `00 14 * * 1`    | yes          | Create OpenSSF analysis and create project score                                                 |
+| [scorecard.yml](./scorecard.yml)                 | `analyze`           | push to `main`, cron: `00 14 * * 1`    | yes          | Create OpenSSF analysis and create project score                                                 |
 
 ## CodeQL
 
@@ -31,11 +31,14 @@ This action scans the dependency manifest files that change as part of a pull re
 It also allows you to define a list of licenses that are allowed or disallowed in the project, and will check if the PR introduces a dependency with a disallowed license.
 It also checks the OpenSSF scorecard for all dependencies and allows to warn if a dependency has a low score.
 
+More information can be found in the [GitHub documentation](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review)
+
 ## FOSSA
 
 Action: https://github.com/fossa-contrib/fossa-action
 
 [FOSSA](https://fossa.com/) is a dependency analysis tool that scans the project for dependencies and checks for vulnerabilities and licenses. The workflow uploads the results to the FOSSA dashboard. The link to the dashboard is available in the README file by clicking on one of the FOSSA badges.
+The `FOSSA_API_KEY` secret must be set for the Actions and for Dependabot!
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=license) [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=security)
 
