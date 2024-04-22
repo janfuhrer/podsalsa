@@ -1,5 +1,5 @@
 // The predicateType field must match this string
-predicateType: "https://slsa.dev/provenance/v1.0"
+predicateType: "https://slsa.dev/provenance/v0.2"
 
 predicate: {
   // This condition verifies that the builder is the builder we
