@@ -25,7 +25,7 @@ RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETPLATFORM} go build \
   -trimpath \
   -tags="netgo" \
-  -ldflags "-s -w -X main.Version=${VERSION} -X main.Commit=${COMMIT_REF} -X main.CommitDate=${BUILD_DATE}" \
+  -ldflags "-s -w -X main.Version=${VERSION} -X main.Commit=${COMMIT_REF} -X main.BuildTime=${BUILD_DATE}" \
   -o podsalsa
 
 # final image (see https://github.com/GoogleContainerTools/distroless)
