@@ -9,13 +9,13 @@ import (
 )
 
 type Config struct {
-	Hostname   string `mapstructure:"hostname"`
-	Host       string `mapstructure:"host"`
-	Port       string `mapstructure:"port"`
-	Version    string `mapstructure:"version"`
-	CommitDate string `mapstructure:"commitDate"`
-	Commit     string `mapstructure:"commit"`
-	UIPath     string `mapstructure:"uiPath"`
+	Hostname  string `mapstructure:"hostname"`
+	Host      string `mapstructure:"host"`
+	Port      string `mapstructure:"port"`
+	Version   string `mapstructure:"version"`
+	BuildTime string `mapstructure:"buildTime"`
+	Commit    string `mapstructure:"commit"`
+	UIPath    string `mapstructure:"uiPath"`
 }
 
 type Server struct {

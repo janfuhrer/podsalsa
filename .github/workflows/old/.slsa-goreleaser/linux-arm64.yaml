@@ -6,7 +6,7 @@ flags:
   - -trimpath
   - -tags=netgo
 
-goos: windows # GOOS
+goos: linux # GOOS
 goarch: arm64 # GOARCH
 
 # Binary output name.
@@ -19,4 +19,4 @@ ldflags:
   - "-w"
   - "-X main.Version={{ .Env.VERSION }}"
   - "-X main.Commit={{ .Env.COMMIT }}"
-  - "-X main.CommitDate={{ .Env.COMMIT_DATE }}"
+  - "-X main.BuildTime={{ .Env.COMMIT_DATE }}"

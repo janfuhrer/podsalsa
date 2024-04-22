@@ -17,7 +17,7 @@ import (
 // These variables are set in build step
 var Version = "v0.0.0-dev.0"
 var Commit = "none"
-var CommitDate = "unknown"
+var BuildTime = "unknown"
 
 func main() {
 	fs := pflag.NewFlagSet("default", pflag.ContinueOnError)
@@ -46,7 +46,7 @@ func main() {
 	viper.Set("hostname", hostname)
 	viper.Set("version", Version)
 	viper.Set("commit", Commit)
-	viper.Set("commitdate", CommitDate)
+	viper.Set("buildTime", BuildTime)
 	viper.Set("uiPath", viper.GetString("ui-path"))
 	viper.SetEnvPrefix("PODSALSA")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
@@ -79,7 +79,7 @@ func main() {
 	logger.Info("Starting podsalsa...",
 		zap.String("version", Version),
 		zap.String("commit", Commit),
-		zap.String("commitDate", CommitDate),
+		zap.String("buildTime", BuildTime),
 		zap.String("port", srvCfg.Port),
 		zap.String("uiPath", srvCfg.UIPath),
 	)

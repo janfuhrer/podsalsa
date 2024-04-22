@@ -14,15 +14,15 @@ func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := struct {
-		Title      string
-		Version    string
-		Commit     string
-		CommitDate string
+		Title     string
+		Version   string
+		Commit    string
+		BuildTime string
 	}{
-		Title:      s.config.Hostname,
-		Version:    s.config.Version,
-		Commit:     s.config.Commit,
-		CommitDate: s.config.CommitDate,
+		Title:     s.config.Hostname,
+		Version:   s.config.Version,
+		Commit:    s.config.Commit,
+		BuildTime: s.config.BuildTime,
 	}
 
 	if err := tmpl.Execute(w, data); err != nil {
