@@ -81,15 +81,17 @@ checksum:
   name_template: 'checksums.txt'
   algorithm: sha256
 
-# sign the artifacts
+# sign checksum file (cosign keyless)
 signs:
   - cmd: cosign
     args:
     - "sign-blob"
     - "--output-signature=${signature}"
     - "${artifact}"
+    - "--output-pem=${certificate}"
     - "--yes"
-    artifacts: all
+    artifacts: checksum
+    certificate: '${artifact}.pem'
 
 release:
   # allow pre-release versions (e.g. by tagging with v1.0.0-rc0)
