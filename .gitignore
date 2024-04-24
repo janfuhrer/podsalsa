@@ -26,5 +26,8 @@ bin/
 # docker buildx attestation directory
 out/
 
+# ko sbom directory
+sbom/
+
 # local binary
 podsalsa

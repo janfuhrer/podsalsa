@@ -5,16 +5,15 @@
 Following workflows are implemented in the repository.
 [SARIF](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning) is used to store the results for an analysis of code scanning tools in the Security tab of the repository.
 
-| Workflow                                           | Jobs                | Trigger                                | SARIF upload | Description                                                                                      |
-| :------------------------------------------------- | :------------------ | :------------------------------------- | :----------- | ------------------------------------------------------------------------------------------------ |
+| Workflow                                         | Jobs                | Trigger                                | SARIF upload | Description                                                                                      |
+| :----------------------------------------------- | :------------------ | :------------------------------------- | :----------- | ------------------------------------------------------------------------------------------------ |
 | [codeql.yml](./codeql.yml)                       | `analyze`           | push/pr to `main`, cron: `00 13 * * 1` | yes          | Semantic code analysis                                                                           |
 | [dependency-review.yml](./dependency-review.yml) | `dependency-review` | pr to `main`                           | -            | Check pull request for vulnerabilities in dependencies or invalid licenses are being introduced. |
 | [fossa.yml](./fossa.yml)                         | `analyze`           | push/pr on `*`                         | -            | FOSSA analysis                                                                                   |
 | [golangci-lint.yml](./golangci-lint.yml)         | `lint`              | push/pr on `*`                         | -            | Lint Go Code                                                                                     |
 | [gosec.yml](./gosec.yml)                         | `analyze`           | push/pr on `*`                         | -            | Inspects source code for security problems in Go code                                            |
 | [osv-scan.yml](./osv-scan.yml)                   | `analyze`           | push/pr to `main`, cron: `30 13 * * 1` | yes          | Scanning for vulnerabilites in dependencies                                                      |
-| [release.yml](./release.yml)                     | `args`              | push tag `v*`                          | -            | Get variables for go build                                                                       |
-|                                                    | `go-release`        | push tag `v*`                          | -            | Release the go-binaries for multiple platforms                                                   |
+| [release.yml](./release.yml)                     | `...`               | push tag `v*`                          | -            | Create release with go binaries and docker container                                             |
 | [scorecard.yml](./scorecard.yml)                 | `analyze`           | push to `main`, cron: `00 14 * * 1`    | yes          | Create OpenSSF analysis and create project score                                                 |
 
 ## CodeQL
@@ -61,11 +60,15 @@ Action: https://github.com/google/osv-scanner-action
 
 [OSV-Scan](https://osv.dev/) is a vulnerability database and triage infrastructure for open-source projects. The [OSV-Scanner](https://google.github.io/osv-scanner/) finds vulnerabilities in dependencies of an project and uploads the results to the Security tab of the repository.
 
-## Go-Release
+## Release
 
-Action: https://github.com/slsa-framework/slsa-github-generator/tree/v1.10.0
+### Go Release
 
-The release workflow generates the go binaries with SLSA Build Level 3 provenance and uploads them to the release page. The workflow also creates a release draft with the changelog and the binaries attached which can be published by the user.  
+TODO 
+
+### Container Release
+
+TODO
 
 ## Scorecards
 

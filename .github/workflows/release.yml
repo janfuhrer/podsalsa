@@ -5,6 +5,10 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   goreleaser:
     outputs:
@@ -22,10 +26,11 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      # update goreportcard
       - uses: creekorful/goreportcard-action@1f35ced8cdac2cba28c9a2f2288a16aacfd507f9 # v1.0
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: '1.22'
+          go-version-file: 'go.mod'
           check-latest: true
       - uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
@@ -139,7 +144,7 @@ jobs:
           DIGEST: ${{ needs.goreleaser.outputs.digest }}
         run: |
           cosign verify-attestation \
-             --type slsaprovenance \
-             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-             --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
-             $IMAGE@$DIGEST
+            --type slsaprovenance \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
+            $IMAGE@$DIGEST

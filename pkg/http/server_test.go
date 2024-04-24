@@ -80,7 +80,7 @@ func TestIndexHandler(t *testing.T) {
 	config := &Config{
 		Host:   "localhost",
 		Port:   "8080",
-		UIPath: "../../ui",
+		UIPath: "../../kodata",
 	}
 
 	server, _ := NewServer(config, logger)

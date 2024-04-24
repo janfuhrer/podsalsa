@@ -1,8 +1,7 @@
 version: '3.8'
 services:
   podsalsa:
-    build: .
-    # image: ghcr.io/janfuhrer/podsalsa:latest
+    image: ghcr.io/janfuhrer/podsalsa:latest
     container_name: podsalsa
     user: '65532'
     restart: unless-stopped
