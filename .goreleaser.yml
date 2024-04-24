@@ -56,8 +56,10 @@ kos:
     preserve_import_paths: false
     sbom: cyclonedx # or spdx
     platforms:
-      # linux/amd64 and linux/arm64
-      - all
+      # possible values: all, linux/s390x, linux/arm64, linux/arm/v7, linux/ppc64le, linux/amd64
+      - linux/arm64
+      - linux/arm/v7
+      - linux/amd64
     # set for reproducible builds
     creation_time: '{{ .CommitTimestamp }}'
     ko_data_creation_time: '{{.CommitTimestamp}}'
@@ -80,14 +82,14 @@ checksum:
   algorithm: sha256
 
 # sign the artifacts
-#signs:
-#  - artifacts: checksum
-#docker_signs:
-#  - artifacts: manifests
-
-# snapshot build
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+signs:
+  - cmd: cosign
+    args:
+    - "sign-blob"
+    - "--output-signature=${signature}"
+    - "${artifact}"
+    - "--yes"
+    artifacts: all
 
 release:
   # allow pre-release versions (e.g. by tagging with v1.0.0-rc0)
