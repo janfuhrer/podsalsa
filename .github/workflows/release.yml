@@ -19,7 +19,6 @@ jobs:
     permissions:
       contents: write
       packages: write
-      # id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
@@ -32,6 +31,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
           check-latest: true
+      - uses: anchore/sbom-action/download-syft@ab5d7b5f48981941c4c5d6bf33aeb98fe3bae38c # v0.15.10
       - uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: ghcr.io
@@ -69,7 +69,7 @@ jobs:
     needs: [goreleaser]
     permissions:
       actions: read # To read the workflow path.
-      id-token: write # To sign the provenance.
+      id-token: write # To sign the provenance (fetch an OIDC token from GitHub)
       contents: write # To add assets to a release.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.10.0
     with:

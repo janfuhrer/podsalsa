@@ -85,12 +85,12 @@ checksum:
 #docker_signs:
 #  - artifacts: manifests
 
-# local build
+# snapshot build
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 
 release:
-  # allow pre-release versions (e.g. by tagging with v1.0.0-rc)
+  # allow pre-release versions (e.g. by tagging with v1.0.0-rc0)
   prerelease: auto
 
 # github changelog for new release
