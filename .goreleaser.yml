@@ -89,6 +89,10 @@ checksum:
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 
+release:
+  # allow pre-release versions (e.g. by tagging with v1.0.0-rc)
+  prerelease: auto
+
 # github changelog for new release
 changelog:
   sort: asc
