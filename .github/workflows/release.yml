@@ -21,6 +21,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write # sign archives with cosign
     steps:
       - name: Checkout repository
         uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
