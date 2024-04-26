@@ -24,19 +24,23 @@ The goal of this project is to provide a simple example of a Go application on G
 - [x] OpenSSF best practices
 - [x] Resolve "Code Scanning" alerts (as far as possible)
 - [x] Document GitHub Actions Best Practices
-- [ ] Implement the release workflow for sbom, docker images, code scanning, and signing
+- [x] Implement the release workflow for sbom, docker images, code scanning, and signing
   - [x] Create the go binaries for multiple platforms
   - [x] Go lint and security scans
-  - [ ] Generates a Software Bill of Materials (SBOM)
-  - [ ] Create multi-arch docker images
-  - [ ] Signs the sbom, the binaries checksum and the container images with Cosign and GitHub OIDC
-  - [ ] Upload the sbom, binaires, checksums to GitHub Releases
-  - [ ] Pushes the container images to GitHub Container Registry and Harbor registry
+  - [x] Generates a Software Bill of Materials (SBOM)
+  - [x] Create multi-arch docker images
+  - [x] Signs the sbom, the binaries checksum and the container images with Cosign and GitHub OIDC
+  - [x] Upload the sbom, binaires, checksums to GitHub Releases
+  - [x] Pushes the container images to GitHub Container Registry and Harbor registry
 - [ ] Document Security Policy (Verifying the release artifacts)
+- [ ] Document Release Workflow
 
 ## Documentation
 
 All the used workflows and security best practices are documented in the following files:
 
-- [PodSalsa Github Workflows](./.github/workflows/README.md)
+- [PodSalsa GitHub Workflows](./.github/workflows/README.md)
+- [Verifying the release artifacts](./SECURITY.md#release-verification)
 - [GitHub Actions Best Practices](./docs/best-practices.md)
+
+More documentation will be added in the future.

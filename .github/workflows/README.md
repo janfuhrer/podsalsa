@@ -1,4 +1,4 @@
-# PodSalsa Github Workflows
+# PodSalsa GitHub Workflows
 
 ## Overview
 
