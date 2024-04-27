@@ -32,7 +32,7 @@ The goal of this project is to provide a simple example of a Go application on G
   - [x] Signs the sbom, the binaries checksum and the container images with Cosign and GitHub OIDC
   - [x] Upload the sbom, binaires, checksums to GitHub Releases
   - [x] Pushes the container images to GitHub Container Registry and Harbor registry
-- [ ] Document Security Policy (Verifying the release artifacts)
+- [x] Document Security Policy (Verifying the release artifacts)
 - [ ] Document Release Workflow
 
 ## Documentation

@@ -123,6 +123,13 @@ The Software Bill of Materials (SBOM) is generated for each release and can be u
 
 The SBOM of the Go binaries is available in the `*.sbom` files of the release and can be verified with the `slsa-verifier` (see [Verify Provenance of Release Artifacts](#verify-provenance-of-release-artifacts)).
 
+The SBOM of the container images can be downloaded with `cosign`. You have to specify the platform of the image to download the correct SBOM.
 
+```bash
+export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
+IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
 
-TODO: add SBOM verification for container images
+cosign download sbom ghcr.io/janfuhrer/podsalsa:$IMAGE --platform linux/arm64
+```
+
+The `cosign download sbom` command will be deprecated in the future. At the moment, I have not found another way to download the SBOM of the container images. There are open issues in the [cosign repository](https://github.com/sigstore/cosign/issues/2307) to provide a better way to download the SBOM.
