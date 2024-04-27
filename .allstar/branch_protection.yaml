@@ -1,0 +1,8 @@
+optConfig:
+  OptIn: true
+action: issue
+enforceDefault: true
+requireApproval: false
+blockForce: true
+requireSignedCommits: true
+enforceOnAdmins: true

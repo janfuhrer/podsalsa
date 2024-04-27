@@ -1,0 +1,5 @@
+optConfig:
+  OptIn: true
+action: issue
+pushAllowed: true
+adminAllowed: false

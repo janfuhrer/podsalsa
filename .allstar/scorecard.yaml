@@ -1,0 +1,17 @@
+optConfig:
+  OptIn: true
+action: issue
+checks:
+- Binary-Artifacts
+- CI-Tests
+- Dangerous-Workflow
+- Dependency-Update-Tool
+- License
+- Packaging
+- Pinned-Dependencies
+- Signed-Releases
+- SAST
+- Security-Policy
+- Token-Permissions
+- Webhooks
+threshold: 8
