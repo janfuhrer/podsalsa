@@ -8,6 +8,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/janfuhrer/podsalsa)](https://goreportcard.com/report/github.com/janfuhrer/podsalsa)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=license)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=security)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 <p align="center">
     <img src="./assets/podsalsa-logo.png" alt="PodSalsa" width="400">
@@ -18,29 +19,20 @@
 PodSalsa is a simple web application that only displays information about the release version of the application, the Git commit and the build date.
 The goal of this project is to provide a simple example of a Go application on GitHub with GitHub Actions for building and releasing the application in a secure way. The focus is on providing a summary/documentation of GitHub Actions best practices, code scanning workflows, vulnerability scanning, and techniques for releasing secure software to improve the security of the software supply chain.
 
-## Work in Progress 🏗️
+## Release
 
-- [x] Document Workflows
-- [x] OpenSSF best practices
-- [x] Resolve "Code Scanning" alerts (as far as possible)
-- [x] Document GitHub Actions Best Practices
-- [x] Implement the release workflow for sbom, docker images, code scanning, and signing
-  - [x] Create the go binaries for multiple platforms
-  - [x] Go lint and security scans
-  - [x] Generates a Software Bill of Materials (SBOM)
-  - [x] Create multi-arch docker images
-  - [x] Signs the sbom, the binaries checksum and the container images with Cosign and GitHub OIDC
-  - [x] Upload the sbom, binaires, checksums to GitHub Releases
-  - [x] Pushes the container images to GitHub Container Registry and Harbor registry
-- [x] Document Security Policy (Verifying the release artifacts)
-- [ ] Document Release Workflow
+Each release of the application includes Go-binary archives, checksums, SBOM files, and container images. 
+
+The release workflow creates provenance for its builds using the [SLSA standard](https://slsa.dev), which conforms to the [Level 3 specification](https://slsa.dev/spec/v1.0/levels#build-l3). Each artifact can be verified using the `slsa-verifier` or `cosign` tool.
 
 ## Documentation
 
-All the used workflows and security best practices are documented in the following files:
+All the used workflows, security best practices and verification of the artifacts are documented in the following files:
 
 - [PodSalsa GitHub Workflows](./.github/workflows/README.md)
 - [Verifying the release artifacts](./SECURITY.md#release-verification)
 - [GitHub Actions Best Practices](./docs/best-practices.md)
 
-More documentation will be added in the future.
+## Use Cases
+
+You can use this project as a reference for securely building and releasing Go applications on GitHub with SLSA Build Level 3 provenance. Feel free to fork this repository and adapt it to your needs, use the workflows and security best practices in your projects.
