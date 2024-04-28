@@ -53,6 +53,9 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # save sbom of container image in a separate registry
+          # see https://github.com/sigstore/cosign/tree/main#specifying-registry
+          COSIGN_REPOSITORY: ghcr.io/${{ github.repository_owner }}/sbom
       - name: Generate binary hashes
         id: binary
         env:

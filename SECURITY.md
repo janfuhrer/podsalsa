@@ -35,7 +35,7 @@ cat multiple.intoto.jsonl | jq -r '.payload' | base64 -d | jq
 
 ### Verify Provenance of Release Artifacts
 
-To verify the release artifacts (go binaries and sbom files), you can use the `slsa-verifier`. This verification works for all release artifcats (`*.tar.gz`, `*.zip`, `*.sbom`).
+To verify the release artifacts (go binaries and SBOMs), you can use the `slsa-verifier`. This verification works for all release artifcats (`*.tar.gz`, `*.zip`, `*.sbom`).
 
 ```bash
 # example for the "podsalsa-darwin-amd64.tar.gz" artifact

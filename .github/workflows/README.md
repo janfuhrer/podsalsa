@@ -5,16 +5,16 @@
 Following workflows are implemented in the repository.
 [SARIF](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning) is used to store the results for an analysis of code scanning tools in the Security tab of the repository.
 
-| Workflow                                         | Jobs                | Trigger                                | SARIF upload | Description                                                                                      |
-| :----------------------------------------------- | :------------------ | :------------------------------------- | :----------- | ------------------------------------------------------------------------------------------------ |
-| [codeql.yml](./codeql.yml)                       | `analyze`           | push/pr to `main`, cron: `00 13 * * 1` | yes          | Semantic code analysis                                                                           |
-| [dependency-review.yml](./dependency-review.yml) | `dependency-review` | pr to `main`                           | -            | Check pull request for vulnerabilities in dependencies or invalid licenses are being introduced. |
-| [fossa.yml](./fossa.yml)                         | `analyze`           | push/pr on `*`                         | -            | FOSSA analysis                                                                                   |
-| [golangci-lint.yml](./golangci-lint.yml)         | `lint`              | push/pr on `*`                         | -            | Lint Go Code                                                                                     |
-| [gosec.yml](./gosec.yml)                         | `analyze`           | push/pr on `*`                         | -            | Inspects source code for security problems in Go code                                            |
-| [osv-scan.yml](./osv-scan.yml)                   | `analyze`           | push/pr to `main`, cron: `30 13 * * 1` | yes          | Scanning for vulnerabilites in dependencies                                                      |
-| [release.yml](./release.yml)                     | `...`               | push tag `v*`                          | -            | Create release with go binaries and docker container                                             |
-| [scorecard.yml](./scorecard.yml)                 | `analyze`           | push to `main`, cron: `00 14 * * 1`    | yes          | Create OpenSSF analysis and create project score                                                 |
+| Workflow                                         | Jobs                            | Trigger                                                       | SARIF upload | Description                                                                                     |
+| :----------------------------------------------- | :------------------------------ | :------------------------------------------------------------ | :----------- | ----------------------------------------------------------------------------------------------- |
+| [codeql.yml](./codeql.yml)                       | `analyze`                       | push/pr to `main`, cron: `00 13 * * 1`                        | yes          | Semantic code analysis                                                                          |
+| [dependency-review.yml](./dependency-review.yml) | `dependency-review`             | pr to `main`                                                  | -            | Check pull request for vulnerabilities in dependencies or invalid licenses are being introduced |
+| [fossa.yml](./fossa.yml)                         | `analyze`                       | push/pr on `*`                                                | -            | FOSSA analysis                                                                                  |
+| [golangci-lint.yml](./golangci-lint.yml)         | `lint`                          | push/pr on `*`                                                | -            | Lint Go Code                                                                                    |
+| [gosec.yml](./gosec.yml)                         | `analyze`                       | push/pr on `*`                                                | -            | Inspects source code for security problems in Go code                                           |
+| [osv-scan.yml](./osv-scan.yml)                   | `analyze`                       | push/pr to `main`, cron: `30 13 * * 1`                        | yes          | Scanning for vulnerabilites in dependencies                                                     |
+| [release.yml](./release.yml)                     | see [release chapter](#release) | push tag `v*`                                                 | -            | Create release with go binaries and docker container                                            |
+| [scorecard.yml](./scorecard.yml)                 | `analyze`                       | push to `main`, cron: `00 14 * * 1`, change branch protection | yes          | Create OpenSSF analysis and create project score                                                |
 
 ## CodeQL
 
@@ -41,7 +41,6 @@ The `FOSSA_API_KEY` secret must be set for the Actions and for Dependabot!
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=license) [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B44203%2Fgithub.com%2Fjanfuhrer%2Fpodsalsa?ref=badge_shield&issueType=security)
 
-
 ## GolangCI-Lint
 
 Action: https://github.com/golangci/golangci-lint-action
@@ -62,13 +61,24 @@ Action: https://github.com/google/osv-scanner-action
 
 ## Release
 
+The release workflow includes multiple jobs to create a release of the project. Following jobs are implemented:
+
+| Job                               | GitHub Action                                                                                                                    | Description                                                                  |
+| :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------- |
+| `goreleaser`                      | [goreleaser-action](https://github.com/goreleaser/goreleaser-action)                                                             | Creates the go archives, checksums file, SBOMs and container images          |
+| `binary-provenance`               | [generator_generic_slsa3](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md) | Generate provenance for all release artifacts (go archives & SBOMs)          |
+| `image-provenance`                | [generator_container_slsa3](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/container)       | Generates provenance for the container images                                |
+| `verification-with-slsa-verifier` | -                                                                                                                                | Verifying the cryptographic signatures on provenance for all binary releases |
+| `verification-with-cosign`        | -                                                                                                                                | Verifying the cryptographic signatures on provenance for the container image |
+
 ### Go Release
 
-TODO 
+This repository uses [goreleaser](https://goreleaser.com/) to create all the release artifacts. GoReleaser can build and release Go binaries for multiple platforms, create archives/container images/SBOMs and more. All the configuration for the release is stored in the file [.goreleaser.yml](./../../.goreleaser.yml).
+For all the release artifacts (`*.tar.gz`, `*.zip`, `*.sbom`), provenance is generated using the [SLSA Generic Generator](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md). The provenance file is uploaded to the release assets and can be verified using the `slsa-verifier` tool (see [Release Verification](./../../SECURITY.md#release-verification)).
 
 ### Container Release
 
-TODO
+The multi-arch container images are built using [Ko](https://ko.build/) in the GoReleaser workflow and uploaded to the GitHub Container Registry. The docker image provenance is generated using the [SLSA Container Generator](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/container) and uploaded to the registry. The provenance can be verified using the `slsa-verifier` or `cosign` tool (see [Release Verification](./../../SECURITY.md#release-verification)). The SBOMs of the container images are uploaded to a separate package registry (see [SBOM](./../../SECURITY.md#sbom) for more information).
 
 ## Scorecards
 
