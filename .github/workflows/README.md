@@ -78,7 +78,7 @@ For all the release artifacts (`*.tar.gz`, `*.zip`, `*.sbom`), provenance is gen
 
 ### Container Release
 
-The multi-arch container images are built using [Ko](https://ko.build/) in the GoReleaser workflow and uploaded to the GitHub Container Registry. The docker image provenance is generated using the [SLSA Container Generator](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/container) and uploaded to the registry. The provenance can be verified using the `slsa-verifier` or `cosign` tool (see [Release Verification](./../../SECURITY.md#release-verification)). The SBOMs of the container images are uploaded to a separate package registry (see [SBOMs](./../../SECURITY.md#sboms) for more information).
+The multi-arch container images are built using [Ko](https://ko.build/) in the GoReleaser workflow and uploaded to the GitHub Container Registry. The docker image provenance is generated using the [SLSA Container Generator](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/container) and uploaded to the registry. The provenance can be verified using the `slsa-verifier` or `cosign` tool (see [Release Verification](./../../SECURITY.md#release-verification)). The SBOMs of the container images are uploaded to a separate package registry (see [SBOM](./../../SECURITY.md#sbom) for more information).
 
 ## Scorecards
 

@@ -21,7 +21,7 @@ The goal of this project is to provide a simple example of a Go application on G
 
 ## Release
 
-Each release of the application includes Go-binary archives, checksums, SBOM files, and container images. 
+Each release of the application includes Go-binary archives, checksums file, SBOMs and container images. 
 
 The release workflow creates provenance for its builds using the [SLSA standard](https://slsa.dev), which conforms to the [Level 3 specification](https://slsa.dev/spec/v1.0/levels#build-l3). Each artifact can be verified using the `slsa-verifier` or `cosign` tool.
 
