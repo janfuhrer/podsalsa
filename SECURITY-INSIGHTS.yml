@@ -1,8 +1,8 @@
 header:
   schema-version: 1.0.0
   expiration-date: '2025-04-25T10:00:00.000Z'
-  last-updated: '2024-04-26'
-  last-reviewed: '2024-04-26'
+  last-updated: '2024-04-28'
+  last-reviewed: '2024-04-28'
   project-url: https://github.com/janfuhrer/podsalsa
   changelog: https://github.com/janfuhrer/podsalsa/blob/main/CHANGELOG.md
   license: https://github.com/janfuhrer/podsalsa/blob/main/LICENSE
@@ -49,6 +49,6 @@ dependencies:
   - sbom-file: https://github.com/janfuhrer/podsalsa/releases
     sbom-format: CycloneDX
     sbom-url: https://github.com/janfuhrer/podsalsa/blob/main/SECURITY.md#sbom
-  - sbom-file: https://github.com/janfuhrer/podsalsa/pkgs/container/podsalsa
+  - sbom-file: https://github.com/janfuhrer/podsalsa/pkgs/container/sbom
     sbom-format: CycloneDX
     sbom-url: https://github.com/janfuhrer/podsalsa/blob/main/SECURITY.md#sbom
