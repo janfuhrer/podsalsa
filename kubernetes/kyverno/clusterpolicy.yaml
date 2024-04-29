@@ -1,0 +1,38 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-slsa-attestations-new
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  rules:
+    - name: check-all-keyless
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      verifyImages:
+      - imageReferences:
+        - "ghcr.io/janfuhrer/podsalsa:*"
+        attestations:
+        - type: https://slsa.dev/provenance/v0.2
+          attestors:
+          - count: 1
+            entries:
+            - keyless:
+                subject: "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v*"
+                issuer: "https://token.actions.githubusercontent.com"
+                rekor:
+                  url: https://rekor.sigstore.dev
+          conditions:
+          - all:
+            # This expression uses a regex pattern to ensure the builder.id in the attestation is equal to the official
+            # SLSA provenance generator workflow and uses a tagged release in semver format. If using a specific SLSA
+            # provenance generation workflow, you may need to adjust the first input as necessary.
+            - key: "{{ regex_match('^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9].[0-9].[0-9]$','{{ builder.id}}') }}"
+              operator: Equals
+              value: true
+            - key: "{{ invocation.configSource.uri }}"
+              operator: Equals
+              value: "git+https://github.com/janfuhrer/podsalsa@refs/tags/v**"
