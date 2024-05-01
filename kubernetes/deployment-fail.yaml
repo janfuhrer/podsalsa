@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: podsalsa
+  name: podsalsa-fail
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: podsalsa
+      app: podsalsa-fail
   template:
     metadata:
       labels:
-        app: podsalsa
+        app: podsalsa-fail
     spec:
       securityContext:
         runAsNonRoot: true
@@ -19,7 +19,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: podsalsa
-        image: ghcr.io/janfuhrer/podsalsa:v0.2.2@sha256:ea66c89ccddb08dc4b554985d355d9e1baafeb8997246cfe5c1e474367af8191
+        image: ghcr.io/janfuhrer/podsalsa:v0.1.0@sha256:91bda05305b8ba6ef6a2494d02e409a6968de008b09f77fb0c9c8dcc3f24054e
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

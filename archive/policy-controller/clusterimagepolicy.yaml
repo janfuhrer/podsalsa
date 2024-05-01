@@ -1,7 +1,7 @@
 apiVersion: policy.sigstore.dev/v1beta1
 kind: ClusterImagePolicy
 metadata:
-  name: janfuhrer-podsalsa
+  name: podsalsa
 spec:
   images:
     # Matches all versions of the podsalsa image.

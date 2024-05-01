@@ -29,9 +29,10 @@ The release workflow creates provenance for its builds using the [SLSA standard]
 
 All the used workflows, security best practices and verification of the artifacts are documented in the following files:
 
+- [GitHub Actions Best Practices](./docs/best-practices.md)
 - [PodSalsa GitHub Workflows](./.github/workflows/README.md)
 - [Verifying the release artifacts](./SECURITY.md#release-verification)
-- [GitHub Actions Best Practices](./docs/best-practices.md)
+- [Enforcing SLSA verification on Kubernetes](./kubernetes/README.md)
 
 ## Use Cases
 
