@@ -53,4 +53,3 @@ jobs:
       upload-assets: true
       # upload provenance
       upload-tag-name: true
-      draft-release: true

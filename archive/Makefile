@@ -2,7 +2,7 @@ NAME := podsalsa
 DOCKER_REPOSITORY := janfuhrer
 DOCKER_IMAGE_NAME := $(DOCKER_REPOSITORY)/$(NAME)
 BUILD_DATE := $(shell date -Iseconds)
-VERSION := $(shell cat .version)
+VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)-local
 # Adds "-dirty" suffix if there are uncommitted changes in the git repository
 COMMIT_REF:=$(shell git describe --dirty --always)
 EXTRA_FLAGS ?=

@@ -80,6 +80,8 @@ For all the release artifacts (`*.tar.gz`, `*.zip`, `*.sbom`), provenance is gen
 
 The multi-arch container images are built using [Ko](https://ko.build/) in the GoReleaser workflow and uploaded to the GitHub Container Registry. The docker image provenance is generated using the [SLSA Container Generator](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/container) and uploaded to the registry. The provenance can be verified using the `slsa-verifier` or `cosign` tool (see [Release Verification](./../../SECURITY.md#release-verification)). The SBOMs of the container images are uploaded to a separate package registry (see [SBOM](./../../SECURITY.md#sbom) for more information).
 
+**Important note about signed container images**: The container images themselves are not signed, but the provenance is. Provenance verification is the only way to ensure the integrity and confidentiality of the images. Provenance verification is a stronger security guarantee than image signing because it verifies the entire build process, not just the final image. Image signing is therefore not necessary if provenance verification is and thus not implemented in this repository.
+
 ## Scorecards
 
 Action: https://github.com/ossf/scorecard-action

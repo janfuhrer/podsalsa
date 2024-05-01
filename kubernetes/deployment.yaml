@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podsalsa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: podsalsa
+  template:
+    metadata:
+      labels:
+        app: podsalsa
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: podsalsa
+        image: ghcr.io/janfuhrer/podsalsa:v0.2.2@sha256:ea66c89ccddb08dc4b554985d355d9e1baafeb8997246cfe5c1e474367af8191
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PODSALSA_LEVEL
+          value: "debug"

@@ -1,0 +1,56 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-slsa-provenance-keyless
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  rules:
+  - name: check-slsa-keyless
+    match:
+      any:
+      # resources to apply the policy to
+      # "Pod" includes many higher-level controller like Deployment, StatefulSet, DaemonSet, etc.
+      # see Auto-Gen Rules: https://kyverno.io/docs/writing-policies/autogen/
+      - resources:
+          kinds:
+          - Pod
+    verifyImages:
+    # Each verifyImages rule can be used to verify signatures or attestations, but not both
+    # use "verifyImages[*].attestors" (for image signature) or "verifyImages[*].attestations.attestors" (for attestation signature)
+    - type: Cosign
+      # enforces that all matching images are verified (default: true)
+      required: true
+      # converts tags to digests for matching images (default: true)
+      mutateDigest: true
+      # enforces that digest are used for matching images (default: true)
+      verifyDigest: true
+      # Kyverno caches sucessful verified images by default (default: true)
+      useCache: true
+      # which images to verify
+      imageReferences:
+      - "ghcr.io/janfuhrer/podsalsa*"
+      # check attestation of image
+      attestations:
+      - type: https://slsa.dev/provenance/v0.2
+        # check signature of attestation
+        attestors:
+        - count: 1 # required count of attestors in the list
+          entries:
+          - keyless:
+              subject: "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v*"
+              issuer: "https://token.actions.githubusercontent.com"
+              rekor:
+                url: https://rekor.sigstore.dev
+        # verify content of the predicate section in the payload of the attestation (according to the policy.cue)
+        conditions:
+        - all:
+          - key: "{{ regex_match('^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$','{{ builder.id }}') }}"
+            operator: Equals
+            value: true
+          - key: "{{ regex_match('git\\+https://github.com/janfuhrer/podsalsa@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$','{{ invocation.configSource.uri }}') }}"
+            operator: Equals
+            value: true
+          - key: "{{ invocation.configSource.entryPoint }}"
+            operator: Equals
+            value: ".github/workflows/release.yml"

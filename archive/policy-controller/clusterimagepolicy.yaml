@@ -1,0 +1,46 @@
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: podsalsa
+spec:
+  images:
+    # Matches all versions of the podsalsa image.
+    # NOTE: policy-controller mutates pods to use a digest even if originally
+    # specified by tag.
+    - glob: "ghcr.io/janfuhrer/podsalsa@*"
+  authorities:
+  - name: fulcio
+    keyless:
+      # Signed by the public Fulcio certificate authority
+      url: https://fulcio.sigstore.dev
+      identities:
+      # Matches the Github Actions OIDC issuer
+      - issuer: https://token.actions.githubusercontent.com
+        # Matches the reusable workflow's signing identity.
+        subjectRegExp: "^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$"
+    ctlog:
+      url: https://rekor.sigstore.dev
+    attestations:
+    - name: must-have-slsa
+      predicateType: https://slsa.dev/provenance/v0.2
+      policy:
+        type: cue
+        data: |
+          // The predicateType field must match this string
+          predicateType: "https://slsa.dev/provenance/v0.2"
+
+          predicate: {
+            // This condition verifies that the builder is the builder we expect and trust.
+            builder: {
+              id: =~"^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$"
+            }
+            invocation: {
+              configSource: {
+                // This condition verifies the entrypoint of the workflow.
+                entryPoint: ".github/workflows/release.yml"
+
+                // This condition verifies that the image was generated from the source repository we expect.
+                uri: =~"^git\\+https://github.com/janfuhrer/podsalsa@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$"
+              }
+            }
+          }
