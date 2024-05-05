@@ -168,10 +168,9 @@ jobs:
           DIGEST: ${{ needs.goreleaser.outputs.digest }}
           REPOSITORY: ${{ github.repository_owner }}
         run: |
-          cosign verify-attestation \
+          COSIGN_REPOSITORY=ghcr.io/$REPOSITORY/signatures cosign verify-attestation \
             --type slsaprovenance \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
-            --provenance-repository ghcr.io/$REPOSITORY/signatures \
             --policy policy.cue \
             $IMAGE@$DIGEST
