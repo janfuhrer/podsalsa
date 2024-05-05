@@ -74,6 +74,7 @@ IMAGE="${IMAGE}@"$(crane digest "${IMAGE}")
 # verify the image
 slsa-verifier verify-image "$IMAGE" \
 	--source-uri github.com/janfuhrer/podsalsa \
+	--provenance-repository ghcr.io/janfuhrer/signatures \
 	--source-versioned-tag $VERSION
 
 PASSED: Verified SLSA provenance
@@ -86,7 +87,7 @@ As an alternative to the SLSA Verifier, you can use `cosign` to verify the docke
 curl -L -O https://raw.githubusercontent.com/janfuhrer/podsalsa/main/policy.cue
 
 # verify the image with cosign
-cosign verify-attestation \
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify-attestation \
   --type slsaprovenance \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
@@ -128,7 +129,9 @@ The SBOMs of the container image can be downloaded with `cosign`. You must speci
 ```bash
 export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
 
-COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign download sbom ghcr.io/janfuhrer/podsalsa:$VERSION --platform linux/arm64
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign download sbom \
+	ghcr.io/janfuhrer/podsalsa:$VERSION \
+	--platform linux/arm64
 ```
 
 The `cosign download sbom` command will be deprecated in the future. At the moment, I have not found another way to download the SBOM of the container images. There are open issues in the [cosign repository](https://github.com/sigstore/cosign/issues/2307) to provide a better way to download the SBOM.
