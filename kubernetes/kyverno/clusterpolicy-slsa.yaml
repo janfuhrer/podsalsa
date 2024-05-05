@@ -30,6 +30,8 @@ spec:
       # which images to verify
       imageReferences:
       - "ghcr.io/janfuhrer/podsalsa*"
+      # set repository for attestations
+      repository: ghcr.io/janfuhrer/signatures
       # check attestation of image
       attestations:
       - type: https://slsa.dev/provenance/v0.2

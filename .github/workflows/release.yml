@@ -100,8 +100,11 @@ jobs:
       image: ${{ needs.goreleaser.outputs.image }}
       digest: ${{ needs.goreleaser.outputs.digest }}
       registry-username: ${{ github.actor }}
+      provenance-registry-username: ${{ github.actor }}
+      provenance-repository: ghcr.io/${{ github.repository_owner }}/signatures
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
+      provenance-registry-password: ${{ secrets.GITHUB_TOKEN }}
 
   verification-with-slsa-verifier:
     needs: [goreleaser, binary-provenance]
@@ -163,10 +166,12 @@ jobs:
         env:
           IMAGE: ${{ needs.goreleaser.outputs.image }}
           DIGEST: ${{ needs.goreleaser.outputs.digest }}
+          REPOSITORY: ${{ github.repository_owner }}
         run: |
           cosign verify-attestation \
             --type slsaprovenance \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
+            --provenance-repository ghcr.io/$REPOSITORY/signatures \
             --policy policy.cue \
             $IMAGE@$DIGEST
