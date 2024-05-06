@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Run Gosec Security Scanner
-        uses: securego/gosec@09d62bd630fbf484860addc88871a0dd755e8b56 # master (since go 1.22.2 is not supported yet)
+        uses: securego/gosec@d3b2359ae29fe344f4df5bf3a8c6491fb7c46c02 # master (since go 1.22.2 is not supported yet)
         env:
           # fix: 1.22.2 is not supported yet
           GOTOOLCHAIN: "go1.22.0"
