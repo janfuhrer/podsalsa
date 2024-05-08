@@ -37,6 +37,7 @@ func NewServer(config *Config, logger *zap.Logger) (*Server, error) {
 
 func (s *Server) registerHandlers() {
 	s.router.HandleFunc("/", s.indexHandler).HeadersRegexp("User-Agent", "^Mozilla.*").Methods("GET")
+	s.router.HandleFunc("/health", s.healthHandler).Methods("GET")
 }
 
 func (s *Server) registerMiddlewares() {
