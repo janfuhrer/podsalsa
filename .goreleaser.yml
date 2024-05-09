@@ -67,7 +67,7 @@ release:
 
     **Docker Images**
     - `ghcr.io/janfuhrer/{{ .ProjectName }}:{{ .Version }}`
-    {{ if not .Prerelease }}- `ghcr.io/janfuhrer/{{ .ProjectName }}:latest`{{} end }}
+    {{ if not .Prerelease }}- `ghcr.io/janfuhrer/{{ .ProjectName }}:latest`{{ end }}
 
 # github changelog for new release
 changelog:
