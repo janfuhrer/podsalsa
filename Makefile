@@ -95,7 +95,7 @@ ko-publish-podsalsa: ko-login
 
 # go-install-tool will 'go install' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-install-TOOLS
+define go-install-tool
 @[ -f $(1) ] || { \
 set -e ;\
 GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
