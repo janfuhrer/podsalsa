@@ -20,7 +20,7 @@ To verify the release artifacts, you will need the [slsa-verifier](https://githu
 
 ### Inspect provenance
 
-You can manually inspect the provenance of the release artifacts by decoding the `multiple.intoto.jsonl` file.
+You can manually inspect the provenance of the release artifacts (without containers) by decoding the `multiple.intoto.jsonl` file.
 
 ```bash
 # get the latest release
@@ -123,12 +123,13 @@ GitHub Workflow Ref: refs/tags/v0.3.1
 ### Verify signature of container image
 
 The container images are additionaly signed with Cosign. The signature can be verified with the `cosign` binary.
+**Important**: only the multi-arch image is signed, not the individual platform images.
 
 ```bash
 COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
-  $IMAGE \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' | jq
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  $IMAGE | jq
 ```
 
 Example output:
@@ -187,22 +188,24 @@ The output should be: `Verified OK`.
 
 The Software Bill of Materials (SBOM) is generated in CycloneDX JSON format for each release and can be used to verify the dependencies of the project.
 
-The SBOM of the Go binaries is available in the `*.sbom` files of the release and can be verified with the `slsa-verifier` (see [Verify Provenance of Release Artifacts](#verify-provenance-of-release-artifacts)).
+#### Go binary archives
+
+The SBOMs of the Go binary archives are provided in the `*.tar.gz.sbom` files of the release and can be verified with the `slsa-verifier` (see [Verify Provenance of Release Artifacts](#verify-provenance-of-release-artifacts)).
+
+#### Container images
 
 The SBOMs of the container image can be downloaded with `cosign` or `crane`.
+**Important**: only the multi-arch image is signed, not the individual platform images.
 
-**Download SBOM of container with cosign**
-
-As the SBOMs are stored in a separate repository, you have to specify the `COSIGN_REPOSITORY` environment variable to download the SBOM.
+**Verify provenance of SBOM**
 
 ```bash
-export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
-
-COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign download sbom \
-	ghcr.io/janfuhrer/podsalsa:$VERSION | jq
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
+  --type cyclonedx \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  $IMAGE | jq -r '.payload' | base64 -d | jq
 ```
-
-The `cosign download sbom` command will be deprecated in the future. There are open issues in the [cosign repository](https://github.com/sigstore/cosign/issues/2307) to provide a better way to download the SBOM.
 
 **Download SBOM of container with crane**
 

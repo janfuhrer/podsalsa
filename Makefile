@@ -77,7 +77,7 @@ LABELS		    := "--image-label=org.opencontainers.image.created=$(BUILD_DATE),$\
 ko-build-local: ko
 	@echo Building Podsalsa $(KO_TAGS) for $(KO_PLATFORM) >&2
 	@LD_FLAGS=$(LD_FLAGS) KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(KO_REPOSITORY) \
-		$(KO) build ./ --bare --tags=$(KO_TAGS) $(LABELS) --push=false --local --platform=$(KO_PLATFORM)
+		$(KO) build ./ --bare --tags=$(KO_TAGS) $(LABELS) --push=false --local --platform=$(KO_PLATFORM) --sbom=none
 
 # Ko publish image
 .PHONY: ko-login
@@ -87,7 +87,7 @@ ko-login: ko
 .PHONY: ko-publish-podsalsa
 ko-publish-podsalsa: ko-login
 	@LD_FLAGS=$(LD_FLAGS) KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(KO_REPOSITORY) \
-		$(KO) build ./ --bare --tags=$(KO_TAGS) $(LABELS)
+		$(KO) build ./ --bare --tags=$(KO_TAGS) $(LABELS) --sbom=none
 
 ###########
 # Helpers #
