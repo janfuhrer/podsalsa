@@ -62,6 +62,13 @@ jobs:
       packages: write
       id-token: write # sign archives with cosign
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
       - name: Publish kyverno
         id: release-podsalsa
         uses: ./.github/actions/publish-image
