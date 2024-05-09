@@ -41,7 +41,7 @@ All the used workflows, security best practices and verification of the artifact
 - [PodSalsa GitHub Workflows](./.github/workflows/README.md)
 - [Verifying the release artifacts](./SECURITY.md#release-verification)
 - [Enforcing SLSA verification on Kubernetes](./kubernetes/README.md)
-- [Dependency management](./docs/dependency-management.md)
+- [Component Analysis](./docs/component-analysis.md)
 
 ## Use Cases
 
