@@ -25,6 +25,14 @@ Each release of the application includes Go-binary archives, checksums file, SBO
 
 The release workflow creates provenance for its builds using the [SLSA standard](https://slsa.dev), which conforms to the [Level 3 specification](https://slsa.dev/spec/v1.0/levels#build-l3). Each artifact can be verified using the `slsa-verifier` or `cosign` tool.
 
+| Artifact           | Description                                        | Verification                                                                                                                                   |
+| ------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Go-binary archives | Multi-architecture and platform Go-binary archives | [SLSA-Provenance](./SECURITY.md#verify-provenance-of-release-artifacts)                                                                        |
+| Checksums file     | Checksums file of the Go-binary archives           | [Cosign signature](./SECURITY.md#verify-signature-of-checksum-file)                                                                            |
+| SBOMs              | SBOMs of the Go-binary archives                    | [SLSA-Provenance](./SECURITY.md#go-binary-archives)                                                                                            |
+| Container images   | Multi-architecture container images                | [SLSA-Provenance](./SECURITY.md#verify-provenance-of-container-images) & [Cosign Signature](./SECURITY.md#verify-signature-of-container-image) |
+| SBOMs              | SBOMs of the container images                      | [SLSA-Provenance](./SECURITY.md#container-images)                                                                                              |
+
 ## Documentation
 
 All the used workflows, security best practices and verification of the artifacts are documented in the following files:

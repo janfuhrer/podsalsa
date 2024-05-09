@@ -23,3 +23,7 @@ Since the container images are built using [ko](https://github.com/ko-build/ko),
 ## Makefile
 
 The [Makefile](./Makefile) provides a set of commands to build the container image using the above Dockerfile with sbom and provenance.
+
+## SBOM creation with ko
+
+The first approach to creating SBOMs for the container images was to use `ko`. This approach does not sign the SBOMs and is therefore not secure. The configuration used is described in the file [ko-sbom.md](./ko-sbom.md).
