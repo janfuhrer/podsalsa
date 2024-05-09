@@ -26,13 +26,9 @@ go-build:
 
 KO_VERSION  = v0.15.2
 KO = $(shell pwd)/bin/ko
-ifeq ($(GOOS), darwin)
-KO = /opt/homebrew/bin/ko
-endif
 
 ko:
 	$(call go-install-tool,$(KO),github.com/google/ko@$(KO_VERSION))
-
 
 #########
 # Ko    #
@@ -92,3 +88,16 @@ ko-login: ko
 ko-publish-podsalsa: ko-login
 	@LD_FLAGS=$(LD_FLAGS) KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(KO_REPOSITORY) \
 		$(KO) build ./ --bare --tags=$(KO_TAGS) $(LABELS)
+
+###########
+# Helpers #
+###########
+
+# go-install-tool will 'go install' any package $2 and install it to $1.
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+define go-install-TOOLS
+@[ -f $(1) ] || { \
+set -e ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
+}
+endef
