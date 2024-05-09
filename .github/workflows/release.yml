@@ -15,12 +15,9 @@ jobs:
   goreleaser:
     outputs:
       hashes: ${{ steps.binary.outputs.hashes }}
-      image: ${{ steps.image.outputs.name }}
-      digest: ${{ steps.image.outputs.digest }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
       id-token: write # sign archives with cosign
     steps:
       - name: Checkout repository
@@ -39,12 +36,6 @@ jobs:
         uses: anchore/sbom-action/download-syft@7ccf588e3cf3cc2611714c2eeae48550fbc17552 # v0.15.11
       - name: Install Cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run GoReleaser
         id: goreleaser
         uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0
@@ -53,9 +44,6 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # save sbom of container image in a separate registry
-          # see https://github.com/sigstore/cosign/tree/main#specifying-registry
-          COSIGN_REPOSITORY: ghcr.io/${{ github.repository_owner }}/sbom
       - name: Generate binary hashes
         id: binary
         env:
@@ -64,17 +52,31 @@ jobs:
           set -euo pipefail
           checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
           echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
-      - name: Image digest
-        id: image
-        env:
-          ARTIFACTS: "${{ steps.goreleaser.outputs.artifacts }}"
-        run: |
-          set -euo pipefail
-          image_and_digest=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Docker Manifest") | .path')
-          image=$(echo "${image_and_digest}" | cut -d'@' -f1 | cut -d':' -f1)
-          digest=$(echo "${image_and_digest}" | cut -d'@' -f2)
-          echo "name=$image" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+  ko-publish:
+    outputs:
+      digest: ${{ steps.release-podsalsa.outputs.digest }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write # sign archives with cosign
+    steps:
+      - name: Publish kyverno
+        id: release-podsalsa
+        uses: ./.github/actions/publish-image
+        with:
+          makefile-target: ko-publish-podsalsa
+          registry: ghcr.io
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository_owner }}
+          version: ${{ github.ref_name }}
+          sign-image: true
+          sbom-name: podsalsa
+          sbom-repository: ghcr.io/${{ github.repository_owner }}/sbom
+          signature-repository: ghcr.io/${{ github.repository_owner }}/signatures
+          main-path: ./
 
   binary-provenance:
     needs: [goreleaser]
@@ -89,7 +91,7 @@ jobs:
       upload-assets: true # upload to a new release
 
   image-provenance:
-    needs: [goreleaser]
+    needs: [ko-publish]
     permissions:
       actions: read
       id-token: write
@@ -97,8 +99,8 @@ jobs:
     # MUST be referenced by tag (see https://github.com/slsa-framework/slsa-github-generator/?tab=readme-ov-file#referencing-slsa-builders-and-generators)
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.0.0
     with:
-      image: ${{ needs.goreleaser.outputs.image }}
-      digest: ${{ needs.goreleaser.outputs.digest }}
+      image: ghcr.io/${{ github.repository_owner }}/podsalsa
+      digest: ${{ needs.ko-publish.outputs.digest }}
       registry-username: ${{ github.actor }}
       provenance-registry-username: ${{ github.actor }}
       provenance-repository: ghcr.io/${{ github.repository_owner }}/signatures
@@ -142,7 +144,7 @@ jobs:
           done <<<"$checksums"
 
   verification-with-cosign:
-    needs: [goreleaser, image-provenance]
+    needs: [ko-publish, image-provenance]
     runs-on: ubuntu-latest
     permissions: read-all
     steps:
@@ -164,8 +166,8 @@ jobs:
 
       - name: Verify image
         env:
-          IMAGE: ${{ needs.goreleaser.outputs.image }}
-          DIGEST: ${{ needs.goreleaser.outputs.digest }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
+          DIGEST: ${{ needs.ko-publish.outputs.digest }}
           REPOSITORY: ${{ github.repository_owner }}
         run: |
           COSIGN_REPOSITORY=ghcr.io/$REPOSITORY/signatures cosign verify-attestation \
