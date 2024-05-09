@@ -176,7 +176,7 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
 
-      - name: Verify image
+      - name: Verify provenance of image
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
           DIGEST: ${{ needs.ko-publish.outputs.digest }}
@@ -187,4 +187,28 @@ jobs:
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
             --policy policy.cue \
+            $IMAGE@$DIGEST
+
+      - name: Verify signature of image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
+          DIGEST: ${{ needs.ko-publish.outputs.digest }}
+          REPOSITORY: ${{ github.repository_owner }}
+        run: |
+          COSIGN_REPOSITORY=ghcr.io/$REPOSITORY/signatures cosign verify \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+            $IMAGE@$DIGEST
+
+      - name: Verify sbom of image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
+          DIGEST: ${{ needs.ko-publish.outputs.digest }}
+          REPOSITORY: ${{ github.repository_owner }}
+        run: |
+          COSIGN_REPOSITORY=ghcr.io/$REPOSITORY/sbom cosign verify-attestation \
+            --type cyclonedx \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+            --policy policy-sbom.cue \
             $IMAGE@$DIGEST

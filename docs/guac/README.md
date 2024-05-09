@@ -24,12 +24,19 @@ First, we need to download the SBOMs of a project and import them into GUAC. The
 mkdir sboms
 cd sboms
 
-# import podsalsa sboms for the latest release
+# get the latest release version
 export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
+
+# download all go archive sboms of this release
 for ARTIFACT in $(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.assets[] | select(.name | endswith(".sbom")) | .name'); do curl -L -O -s https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/$ARTIFACT; done
 
-# download all available sboms of janfuhrer/podsalsa/sbom
-for SBOM_TAG in $(crane ls ghcr.io/janfuhrer/sbom); do crane export ghcr.io/janfuhrer/sbom:$SBOM_TAG ./$SBOM_TAG; done
+# download sbom of container image
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
+  --type cyclonedx \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  --policy policy-sbom.cue \
+  $IMAGE | jq -r '.payload' | base64 -d | jq > sbom.json
 ```
 
 Import all SBOMs to guac:

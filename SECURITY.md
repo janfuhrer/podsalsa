@@ -18,14 +18,20 @@ All signatures are created by [Cosign](https://github.com/sigstore/cosign) using
 
 To verify the release artifacts, you will need the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier), [cosign](https://github.com/sigstore/cosign) and [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) binaries. See the [prerequisites verification](docs/prerequisites-verification.md) for installation instructions.
 
+### Version
+
+All of the following commands require the `VERSION` environment variable to be set to the version of the release you want to verify. You can set the variable manually or the the latest version with the following command:
+
+```bash
+# get the latest release
+export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
+```
+
 ### Inspect provenance
 
 You can manually inspect the provenance of the release artifacts (without containers) by decoding the `multiple.intoto.jsonl` file.
 
 ```bash
-# get the latest release
-export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
-
 # download the provenance file
 curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/multiple.intoto.jsonl
 
@@ -35,11 +41,10 @@ cat multiple.intoto.jsonl | jq -r '.payload' | base64 -d | jq
 
 ### Verify provenance of release artifacts
 
-To verify the release artifacts (go binaries and SBOMs), you can use the `slsa-verifier`. This verification works for all release artifcats (`*.tar.gz`, `*.zip`, `*.sbom`).
+To verify the release artifacts (go binaries and SBOMs) you can use the `slsa-verifier`. This verification works for all release artifcats (`*.tar.gz`, `*.zip`, `*.sbom`).
 
 ```bash
 # example for the "podsalsa-darwin-amd64.tar.gz" artifact
-export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
 export ARTIFACT=podsalsa_${VERSION}_darwin_amd64.tar.gz
 
 # download the artifact
@@ -50,10 +55,10 @@ curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/mult
 
 # verify the artifact
 slsa-verifier verify-artifact \
-	--provenance-path multiple.intoto.jsonl \
-	--source-uri github.com/janfuhrer/podsalsa \
-	--source-tag $VERSION \
-    $ARTIFACT
+  --provenance-path multiple.intoto.jsonl \
+  --source-uri github.com/janfuhrer/podsalsa \
+  --source-tag $VERSION \
+  $ARTIFACT
 ```
 
 The output should be: `PASSED: Verified SLSA provenance`.
@@ -65,7 +70,6 @@ The output should be: `PASSED: Verified SLSA provenance`.
 The `slsa-verifier` can also verify docker images. Verification can be done by tag or by digest. We recommend to always use the digest to prevent [TOCTOU attacks](https://github.com/slsa-framework/slsa-verifier?tab=readme-ov-file#toctou-attacks), as an image tag is not immutable.
 
 ```bash
-export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
 IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
 
 # get the image digest and append it to the image name
@@ -73,17 +77,18 @@ IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
 IMAGE="${IMAGE}@"$(crane digest "${IMAGE}")
 
 # verify the image
-slsa-verifier verify-image "$IMAGE" \
-	--source-uri github.com/janfuhrer/podsalsa \
-	--provenance-repository ghcr.io/janfuhrer/signatures \
-	--source-versioned-tag $VERSION
+slsa-verifier verify-image \
+  --source-uri github.com/janfuhrer/podsalsa \
+  --provenance-repository ghcr.io/janfuhrer/signatures \
+  --source-versioned-tag $VERSION \
+  $IMAGE
 ```
 
 The output should be: `PASSED: Verified SLSA provenance`.
 
 **Verify with Cosign**
 
-As an alternative to the SLSA Verifier, you can use `cosign` to verify the provenance of the container images. Cosign also supports validating the attestation against `CUE` policies (see [Validate In-Toto Attestation](https://docs.sigstore.dev/verifying/attestation/#validate-in-toto-attestations) for more information), which is useful to ensure that some specific requirements are met. We provide a [policy.cue](./policy.cue) file to verify the correct workflow has triggered the release and that the image was generated from the correct source repository. 
+As an alternative to the SLSA verifier, you can use `cosign` to verify the provenance of the container images. Cosign also supports validating the attestation against `CUE` policies (see [Validate In-Toto Attestation](https://docs.sigstore.dev/verifying/attestation/#validate-in-toto-attestations) for more information), which is useful to ensure that some specific requirements are met. We provide a [policy.cue](./policy.cue) file to verify the correct workflow has triggered the release and that the image was generated from the correct source repository. 
 
 ```bash
 # download policy.cue
@@ -103,7 +108,7 @@ Example output:
 ```bash
 will be validating against CUE policies: [policy.cue]
 
-Verification for ghcr.io/janfuhrer/podsalsa:v0.3.1@sha256:e111e800dc80067d56499fe10fe1cc90eaf9e204658475b838cbad3db32cdff9 --
+Verification for ghcr.io/janfuhrer/podsalsa:v0.4.0-rc.7@sha256:b76ecae19894c6fe57bcf81ff285e99d2f732bffcc9930fa77a86101edd59015 --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
@@ -111,10 +116,10 @@ The following checks were performed on each of these signatures:
 Certificate subject: https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v2.0.0
 Certificate issuer URL: https://token.actions.githubusercontent.com
 GitHub Workflow Trigger: push
-GitHub Workflow SHA: b646f50ebce3106be3942c4694b6e2f19042df22
+GitHub Workflow SHA: b51bec9abab403d55c54d2c9b60a12433cc9e102
 GitHub Workflow Name: goreleaser
 GitHub Workflow Repository: janfuhrer/podsalsa
-GitHub Workflow Ref: refs/tags/v0.3.1
+GitHub Workflow Ref: refs/tags/v0.4.0-rc.7
 {
   "payloadType": "application/vnd.in-toto+json",
 (...)
@@ -122,7 +127,7 @@ GitHub Workflow Ref: refs/tags/v0.3.1
 
 ### Verify signature of container image
 
-The container images are additionaly signed with Cosign. The signature can be verified with the `cosign` binary.
+The container images are additionally signed with cosign. The signature can be verified with the `cosign` binary.
 **Important**: only the multi-arch image is signed, not the individual platform images.
 
 ```bash
@@ -135,7 +140,7 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
 Example output:
 
 ```bash
-Verification for ghcr.io/janfuhrer/podsalsa:v0.4.0 --
+Verification for ghcr.io/janfuhrer/podsalsa@sha256:b76ecae19894c6fe57bcf81ff285e99d2f732bffcc9930fa77a86101edd59015 --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
@@ -146,30 +151,27 @@ The following checks were performed on each of these signatures:
 (...)
 ```
 
-If you want to see the whole certificate of the signature, you can use following command:
+If you want to see the entire certificate of the signature, you can use the following command:
 
 ```bash
 COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
-  $IMAGE \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' | \
-  jq -r '.[].optional.Bundle.Payload.body' | base64 -d | \
-  jq -r '.spec.signature.publicKey.content' | base64 -d | \
-  openssl x509 -text -noout
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  $IMAGE | jq -r '.[].optional.Bundle.Payload.body' | \
+  base64 -d | jq -r '.spec.signature.publicKey.content' | \
+  base64 -d | openssl x509 -text -noout
 ```
 
 > [!IMPORTANT]
-> Verifying the provenance of a container image ensure the integrity and authenticity of the image, since the provenance (with the image digest) is signed with Cosign. The container images themselves are also signed with Cosign, but the signature is not necessary for verification if the provenance is verified. The provenance verification is a stronger security guarantee than image signing because it verifies the entire build process, not just the final image. Image signing is therefore not absolutely necessary if provenance verification is.
+> Verifying the provenance of a container image ensures the integrity and authenticity of the image because the provenance (with the image digest) is signed with Cosign. The container images themselves are also signed with Cosign, but the signature is not necessary for verification if the provenance is verified. Provenance verification is a stronger security guarantee than image signing because it verifies the entire build process, not just the final image. Image signing is therefore not essential if provenance verification is.
 
 ### Verify signature of checksum file
 
-Since all release artifacts can be verified with the `slsa-verifier`, a checksum file is not necessary (the integrity is already verified by the SLSA Verifier). A use case might be to verify the integrity of downloaded files and only rely on Cosign instead of the SLSA Verifier.
+Since all release artifacts can be verified with the `slsa-verifier`, a checksum file is not necessary (the integrity is already verified by the SLSA Verifier). A use case might be to verify the integrity of downloaded files and only rely only on Cosign instead of the SLSA verifier.
 
 The checksum file can be verified with `cosign` as follows:
 
 ```bash
-export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
-
 # download the checksum
 curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/checksums.txt
 
@@ -186,40 +188,63 @@ The output should be: `Verified OK`.
 
 ### SBOM
 
-The Software Bill of Materials (SBOM) is generated in CycloneDX JSON format for each release and can be used to verify the dependencies of the project.
+The Software Bill of Materials (SBOM) is generated in CycloneDX JSON format for each release and can be used to verify the project's dependencies.
 
 #### Go binary archives
 
-The SBOMs of the Go binary archives are provided in the `*.tar.gz.sbom` files of the release and can be verified with the `slsa-verifier` (see [Verify Provenance of Release Artifacts](#verify-provenance-of-release-artifacts)).
+The SBOMs of the Go binary archives are provided in the `*.tar.gz.sbom` files of the release and can be verified using the `slsa-verifier` (see [Verify the provenance of release artifacts](#verify-provenance-of-release-artifacts)).
 
 #### Container images
 
-The SBOMs of the container image can be downloaded with `cosign` or `crane`.
-**Important**: only the multi-arch image is signed, not the individual platform images.
+The SBOMs of the container is attestated with Cosign and uploaded to the `ghcr.io/janfuhrer/sbom` repository. The SBOMs can be verified with the `cosign` binary.
 
-**Verify provenance of SBOM**
+**Important**: Only the multi-arch image has a SBOM, not the individual platform images.
+
+**Verify provenance of the SBOM**
+
+```bash
+# download policy-sbom.cue
+curl -L -O https://raw.githubusercontent.com/janfuhrer/podsalsa/main/policy-sbom.cue
+
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
+  --type cyclonedx \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  --policy policy-sbom.cue \
+  $IMAGE | jq -r '.payload' | base64 -d | jq
+```
+
+Example output:
+
+```bash
+will be validating against CUE policies: [policy-sbom.cue]
+
+Verification for ghcr.io/janfuhrer/podsalsa:v0.4.0-rc.7@sha256:b76ecae19894c6fe57bcf81ff285e99d2f732bffcc9930fa77a86101edd59015 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates
+Certificate subject: https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v0.4.0-rc.7
+Certificate issuer URL: https://token.actions.githubusercontent.com
+GitHub Workflow Trigger: push
+GitHub Workflow SHA: b51bec9abab403d55c54d2c9b60a12433cc9e102
+GitHub Workflow Name: goreleaser
+GitHub Workflow Repository: janfuhrer/podsalsa
+GitHub Workflow Ref: refs/tags/v0.4.0-rc.7
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+(...)
+```
+
+**Download SBOM**
+
+If you want to download the SBOM of the container image, you can use the following command:
 
 ```bash
 COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
   --type cyclonedx \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
-  $IMAGE | jq -r '.payload' | base64 -d | jq
-```
-
-**Download SBOM of container with crane**
-
-We can also use `crane` to download the SBOM of the container image. Since the SBOMs are stored in a slightly different format, we have to transform the digest of the image to the correct SBOM tag.
-
-```bash
-export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
-
-# get digest of a specific image tag
-export SBOM_TAG=$(crane digest ghcr.io/janfuhrer/podsalsa:$VERSION | sed -E 's/sha256:([0-9a-f]+)/sha256-\1.sbom/')
-
-# download SBOM
-crane export ghcr.io/janfuhrer/sbom:$SBOM_TAG ./$SBOM_TAG
-
-# inspect SBOM
-less $SBOM_TAG
+  --policy policy-sbom.cue \
+  $IMAGE | jq -r '.payload' | base64 -d | jq > sbom.json
 ```
