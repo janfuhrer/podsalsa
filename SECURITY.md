@@ -40,7 +40,7 @@ To verify the release artifacts (go binaries and SBOMs), you can use the `slsa-v
 ```bash
 # example for the "podsalsa-darwin-amd64.tar.gz" artifact
 export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
-export ARTIFACT=podsalsa_$VERSION_darwin_amd64.tar.gz
+export ARTIFACT=podsalsa_${VERSION}_darwin_amd64.tar.gz
 
 # download the artifact
 curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/$ARTIFACT
@@ -83,7 +83,7 @@ The output should be: `PASSED: Verified SLSA provenance`.
 
 **Verify with Cosign**
 
-As an alternative to the SLSA Verifier, you can use `cosign` to verify the docker images. Cosign also supports validating the attestation against `CUE` policies (see [Validate In-Toto Attestation](https://docs.sigstore.dev/verifying/attestation/#validate-in-toto-attestations) for more information), which is useful to ensure that some specific requirements are met. We provide a [policy.cue](./policy.cue) file to verify the correct workflow has triggered the release and that the image was generated from the correct source repository. 
+As an alternative to the SLSA Verifier, you can use `cosign` to verify the provenance of the container images. Cosign also supports validating the attestation against `CUE` policies (see [Validate In-Toto Attestation](https://docs.sigstore.dev/verifying/attestation/#validate-in-toto-attestations) for more information), which is useful to ensure that some specific requirements are met. We provide a [policy.cue](./policy.cue) file to verify the correct workflow has triggered the release and that the image was generated from the correct source repository. 
 
 ```bash
 # download policy.cue
@@ -122,18 +122,43 @@ GitHub Workflow Ref: refs/tags/v0.3.1
 
 ### Verify signature of container image
 
-The container images are signed with Cosign. The signature can be verified with `cosign`.
+The container images are additionaly signed with Cosign. The signature can be verified with the `cosign` binary.
 
 ```bash
 COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
-  ghcr.io/janfuhrer/podsalsa:$VERSION \
-  --type slsaprovenance \
+  $IMAGE \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workfows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' | jq
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' | jq
+```
+
+Example output:
+
+```bash
+Verification for ghcr.io/janfuhrer/podsalsa:v0.4.0 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates
+[
+  {
+    "critical": {
+(...)
+```
+
+If you want to see the whole certificate of the signature, you can use following command:
+
+```bash
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
+  $IMAGE \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' | \
+  jq -r '.[].optional.Bundle.Payload.body' | base64 -d | \
+  jq -r '.spec.signature.publicKey.content' | base64 -d | \
+  openssl x509 -text -noout
 ```
 
 > [!IMPORTANT]
-> Verifying the provenance of a container image ensure the integrity and authenticity of the image, since the provenance (with the image digest) is signed with Cosign. The container images themselves are also signed with Cosign, but the signature is not necessary for verification if the provenance is verified. The provenance verification is a stronger security guarantee than image signing because it verifies the entire build process, not just the final image. Image signing is therefore not necessary if provenance verification is.
+> Verifying the provenance of a container image ensure the integrity and authenticity of the image, since the provenance (with the image digest) is signed with Cosign. The container images themselves are also signed with Cosign, but the signature is not necessary for verification if the provenance is verified. The provenance verification is a stronger security guarantee than image signing because it verifies the entire build process, not just the final image. Image signing is therefore not absolutely necessary if provenance verification is.
 
 ### Verify signature of checksum file
 
@@ -151,7 +176,7 @@ curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/chec
 cosign verify-blob \
 	--certificate https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/checksums.txt.pem \
 	--signature https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/checksums.txt.sig \
-	--certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
+	--certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
 	--certificate-oidc-issuer https://token.actions.githubusercontent.com \
 	checksums.txt
 ```
@@ -168,15 +193,13 @@ The SBOMs of the container image can be downloaded with `cosign` or `crane`.
 
 **Download SBOM of container with cosign**
 
-You must specify the platform of the image to download the correct SBOM. As the SBOMs are stored in a separate repository, you have to specify the `COSIGN_REPOSITORY` environment variable to download the SBOM.
+As the SBOMs are stored in a separate repository, you have to specify the `COSIGN_REPOSITORY` environment variable to download the SBOM.
 
 ```bash
 export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
-export PLATFORM="linux/amd64"
 
 COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign download sbom \
-	ghcr.io/janfuhrer/podsalsa:$VERSION \
-	--platform $PLATFORM | jq
+	ghcr.io/janfuhrer/podsalsa:$VERSION | jq
 ```
 
 The `cosign download sbom` command will be deprecated in the future. There are open issues in the [cosign repository](https://github.com/sigstore/cosign/issues/2307) to provide a better way to download the SBOM.
@@ -187,11 +210,13 @@ We can also use `crane` to download the SBOM of the container image. Since the S
 
 ```bash
 export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
-export PLATFORM="linux/amd64"
 
 # get digest of a specific image tag
-export SBOM_TAG=$(crane digest ghcr.io/janfuhrer/podsalsa:$VERSION --platform $PLATFORM | sed -E 's/sha256:([0-9a-f]+)/sha256-\1.sbom/')
+export SBOM_TAG=$(crane digest ghcr.io/janfuhrer/podsalsa:$VERSION | sed -E 's/sha256:([0-9a-f]+)/sha256-\1.sbom/')
 
 # download SBOM
 crane export ghcr.io/janfuhrer/sbom:$SBOM_TAG ./$SBOM_TAG
+
+# inspect SBOM
+less $SBOM_TAG
 ```

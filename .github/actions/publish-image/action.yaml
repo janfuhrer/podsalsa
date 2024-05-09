@@ -78,7 +78,11 @@ runs:
       env:
         COSIGN_REPOSITORY: ${{ inputs.sbom-repository }}
       run: |
-        cosign attach sbom --sbom ./${{ inputs.sbom-name }}-bom.cdx.json --type cyclonedx ${{ steps.ko-publish.outputs.digest }}
+        cosign attest --yes \
+          --predicate  ./${{ inputs.sbom-name }}-bom.cdx.json \
+          --type cyclonedx \
+          --oidc-provider github-actions \
+          ${{ steps.ko-publish.outputs.digest }}
     - shell: bash
       id: digest
       run: |
