@@ -2,7 +2,7 @@
 
 ## Overview
 
-[GUAC](https://github.com/guacsec/guac) stands for "Graph for Understanding Artifact Composition" and is a tool to analyze and visualize software dependencies. GUAC ingest software security metadata, such as SBOMs, and maps the relationships between software. The [GUAC Visualizer](https://docs.guac.sh/guac-visualizer/) can use to explore the various nodes and relationships. 
+[GUAC](https://github.com/guacsec/guac) stands for "Graph for Understanding Artifact Composition" and is a tool to analyze and visualize software dependencies. GUAC ingest software security metadata, such as SBOMs, and maps the relationships between software. The [GUAC Visualizer](https://docs.guac.sh/guac-visualizer/) can use to explore the various nodes and relationships. Since March 2024, GUAC is an [OpenSSF Incubator project](https://openssf.org/blog/2024/03/07/guac-joins-openssf-as-incubating-project/).
 
 GUAC further implements [deps.dev](https://deps.dev) for source location, [OpenSSF Scorecards](https://securityscorecards.dev/) results and vulnerability data from [OSV.dev](https://osv.dev/) to combine all available data in one place.
 
@@ -31,18 +31,26 @@ export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releas
 for ARTIFACT in $(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.assets[] | select(.name | endswith(".sbom")) | .name'); do curl -L -O -s https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/$ARTIFACT; done
 
 # download sbom of container image
+IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
+IMAGE="${IMAGE}@"$(crane digest "${IMAGE}")
+
 COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
   --type cyclonedx \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
-  --policy policy-sbom.cue \
-  $IMAGE | jq -r '.payload' | base64 -d | jq > sbom.json
+  $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > podsalsa-$VERSION.sbom
 ```
 
 Import all SBOMs to guac:
 
 ```bash
-guacone collect files sboms/
+guacone collect files ./
+```
+
+Inspect the imported SBOMs:
+
+```bash
+guacone query known package "pkg:golang/github.com/janfuhrer/podsalsa@$VERSION"
 ```
 
 ## Mark a package as vulnerable
@@ -63,6 +71,6 @@ guacone query bad
 
 This returns a "Visualizer url" which can be opened in a browser to see the affected packages in the `guac-visualizer` running on `localhost:8080`.
 
-![guac-visualizer](./guac-visualizer.png)
+![guac-visualizer](../assets/guac/guac-visualizer.png)
 
 More information can be found in the [GUAC Docs](https://docs.guac.sh/).

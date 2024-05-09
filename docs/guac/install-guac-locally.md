@@ -15,7 +15,7 @@ Download and verify the latest release of the `guacone` binary (see [Release Pag
 
 ```bash
 export VERSION=$(curl -s "https://api.github.com/repos/guacsec/guac/releases/latest" | jq -r '.tag_name')
-export ARTIFACT=guacamole-darwin-amd64
+export ARTIFACT=guacone-darwin-amd64
 
 # download the artifact
 curl -O -L https://github.com/guacsec/guac/releases/download/$VERSION/$ARTIFACT
@@ -31,6 +31,9 @@ slsa-verifier verify-artifact \
 # make the binary executable and move it to a directory in your PATH
 chmod +x $ARTIFACT
 sudo mv $ARTIFACT /usr/local/bin/guacone
+
+# check version
+guacone -v
 ```
 
 **Docker-compose**

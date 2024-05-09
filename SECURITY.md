@@ -246,5 +246,5 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
   --policy policy-sbom.cue \
-  $IMAGE | jq -r '.payload' | base64 -d | jq > sbom.json
+  $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > sbom.json
 ```
