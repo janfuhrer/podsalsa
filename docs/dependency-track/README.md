@@ -28,76 +28,34 @@ Create a new API key for the `Automation` team in the `Configuration/Access Mana
 export API_TOKEN=xxx
 ```
 
-## Import SBOMs via API
+## Upload SBOMs
 
-First, we need to download the SBOMs of a project and import them into the apiserver. The following example shows how to download the SBOMs of the `janfuhrer/podsalsa` project and import them into the dependency-track.
+Have a look at the [manual SBOM import](manual-sbom-import.md) for more information on how to upload SBOMs to Dependency-Track.
 
-```bash
-mkdir sboms
-cd sboms
+## Search for components
 
-# get the latest release version
-export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
+You can search for components in the "Component Search" section. You can search for a Package URL (PURL), CPE, SWID Tag ID, Hash and more.
 
-# download sbom of container image
-IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
-IMAGE="${IMAGE}@"$(crane digest "${IMAGE}")
+An example search for the PURL `pkg:golang/github.com/gorilla/mux@v1.8.1`:
 
-COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
-  --type cyclonedx \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
-  $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > podsalsa-$VERSION.sbom
-```
+![Component Search](../assets/dependency-track/component-search.png)
 
-There is a bug in the Dependency-Track API that does not allow to upload a SBOM which has not the specific format (`specVersion` must be after `bomFormat`). To fix this, we need to restructure the json of the container SBOM.
+## Vulnerability Audit
 
-```bash
-jq '{ "$schema", "bomFormat", "specVersion", components, dependencies, metadata, serialNumber, version }' podsalsa-$VERSION.sbom > podsalsa-$VERSION-new.sbom
-rm podsalsa-$VERSION.sbom
-```
+In the "Vulnerability Audit" section, you can see all vulnerabilities of the components in the projects. You can filter by severity, status, and more.
 
-If we do this for multiple versions, we can upload them in a loop:
+![Vulnerability Audit](../assets/dependency-track/vulnerability-audit.png)
 
-```bash
-for ARTIFACT in *.sbom; do \
-    echo -e "\n--Uploading $ARTIFACT"; \
-    VERSION="$(echo $ARTIFACT | sed -n 's/^.*-\(v[0-9]*\.[0-9]*\.[0-9]*\)-.*\.sbom$/\1/p')" && \
-    curl -X "POST" "http://localhost:8081/api/v1/bom" \
-    -H 'Content-Type: multipart/form-data' \
-    -H "X-API-Key: $API_TOKEN" \
-    -F "autoCreate=true" \
-    -F "projectName=podsalsa" \
-    -F "projectVersion=$VERSION" \
-    -F "bom=@$ARTIFACT" \
-    ; done
-```
+## Policy Management
 
-Example output:
+In the "Policy Management" section, you can create and enforce security, operational and license policies. You can create a new policy and add conditions to it.
 
-```bash
---Uploading podsalsa-v0.4.0-new.sbom
-{"token":"xxx"}
---Uploading podsalsa-v0.4.1-new.sbom
-{"token":"xxx"}
-```
+For example you can create a policy that checks if the component has a vulnerability with a severity of `HIGH` and create notifications for it. There are several notification channels available like Slack, Email, Webhook, etc.
 
-The uploaded SBOMs are now accessible in the "Projects" section:
-
-![Projects](../assets/dependency-track/project-view.png)
-
-## Import SBOMs manually
-
-You can also import the SBOMs manually via the frontend. Go to the "Projects" section and click on "Create Project". Fill in the project name and version and click on "Create". Then click on "Upload BOM" in the "Components" section and select the SBOM file.
-
-![Upload via UI](../assets/dependency-track/upload-ui.png)
+![Policy Management](../assets/dependency-track/policy-management.png)
 
 ## Further steps
 
-After importing some SBOMs either via API or manually, you can see vulnerabilites and a risk score in the Dashboard.
+After importing some SBOMs in Dependency-Track, you can see the vulnerability count and a risk score in the Dashboard.
 
-There are many more features in Dependency-Track which you can explore:
-
-- Vulnerability Detection: add more sources for vulnerability detection like GitHub Advisory, Google OSV Advisory, VulnDB, Snyk, Trivy, etc.
-- Create and enforce security, operational and license policies
-- Configure notifications
+There are many more features in Dependency-Track which you can explore. Some ideas for further steps are to add the GitHub Advisory vulnerability source, create notifications for new vulnerabilities and implement Dependency-Track in your CI/CD pipeline.
