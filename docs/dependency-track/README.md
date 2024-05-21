@@ -27,10 +27,12 @@ Create a new API key for the `Automation` team in the `Configuration/Access Mana
 ```bash
 export API_TOKEN=xxx
 ```
-
 ## Upload SBOMs
 
-Have a look at the [manual SBOM import](manual-sbom-import.md) for more information on how to upload SBOMs to Dependency-Track.
+You can either import SBOMs manually via the frontend or via the API.
+The manual import is described in the [manual SBOM import](manual-sbom-import.md) section.
+
+Another way to import all SBOMs automatically is to use the [sbom-operator](sbom-operator.md). This only applies to SBOMs from container images running in a Kubernetes cluster.
 
 ## Search for components
 
