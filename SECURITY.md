@@ -248,3 +248,7 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
   --policy policy-sbom.cue \
   $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > sbom.json
 ```
+
+### Rekor
+
+How to communicate with the Rekor transparency log directly is described in the [Rekor documentation](docs/slsa/sigstore/rekor.md).
