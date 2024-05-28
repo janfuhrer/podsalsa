@@ -1,31 +1,64 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  labels:
+    app.kubernetes.io/name: podsalsa
   name: podsalsa
 spec:
-  replicas: 1
+  replicas: 3
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: podsalsa
+      app.kubernetes.io/name: podsalsa
+  strategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
-        app: podsalsa
+        app.kubernetes.io/name: podsalsa
     spec:
+      automountServiceAccountToken: false
+      containers:
+      - image: ghcr.io/janfuhrer/podsalsa:v0.4.1@sha256:ff954525227a38ec863328f3d8c974cdcb3997ac038e29df3b0c4151d878a712
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: podsalsa
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
         seccompProfile:
           type: RuntimeDefault
-      containers:
-      - name: podsalsa
-        image: ghcr.io/janfuhrer/podsalsa:v0.3.12@sha256:e111e800dc80067d56499fe10fe1cc90eaf9e204658475b838cbad3db32cdff9
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
-        ports:
-        - containerPort: 8080
-        env:
-        - name: PODSALSA_LEVEL
-          value: "debug"
+      serviceAccountName: podsalsa

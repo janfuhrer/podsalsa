@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podsalsa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: podsalsa
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: podsalsa
+    spec:
+      containers:
+      - image: ghcr.io/janfuhrer/podsalsa:v0.4.1@sha256:ff954525227a38ec863328f3d8c974cdcb3997ac038e29df3b0c4151d878a712
+        imagePullPolicy: Always
+        name: podsalsa
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        ports:
+        - containerPort: 8080
+          name: http
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault

@@ -49,14 +49,7 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
   --type cyclonedx \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
-  $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > podsalsa-$VERSION-dirty.sbom
-```
-
-There is a bug in the Dependency-Track API that does not allow to upload a SBOM which has not the specific format (`specVersion` must be after `bomFormat`). To fix this, we need to restructure the json of the container SBOM.
-
-```bash
-jq '{ "$schema", "bomFormat", "specVersion", components, dependencies, metadata, serialNumber, version }' podsalsa-$VERSION-dirty.sbom > podsalsa-$VERSION.sbom
-rm podsalsa-$VERSION-dirty.sbom
+  $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > podsalsa-$VERSION.sbom
 ```
 
 If we do this for multiple versions, we can upload them in a loop:
@@ -89,7 +82,7 @@ Example output:
 
 The uploaded SBOMs are now accessible in the "Projects" section:
 
-![Projects](../assets/dependency-track/project-view.png)
+![Projects](../../assets/dependency-track/project-view.png)
 
 ## Import SBOMs via API (without provenance)
 
@@ -136,10 +129,8 @@ for ARTIFACT in *.sbom; do \
     ; done
 ```
 
-![Projects](../assets/dependency-track/project-view.png)
-
 ## Import SBOMs manually
 
 You can also import the SBOMs manually via the frontend. Go to the "Projects" section and click on "Create Project". Fill in the project name and version and click on "Create". Then click on "Upload BOM" in the "Components" section and select the SBOM file.
 
-![Upload via UI](../assets/dependency-track/upload-ui.png)
+![Upload via UI](../../assets/dependency-track/upload-ui.png)

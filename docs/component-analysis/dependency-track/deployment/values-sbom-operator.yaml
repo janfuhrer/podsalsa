@@ -1,0 +1,14 @@
+args:
+  # disable cron trigger to run immediately
+  #cron: 0 30 * * * *
+  dtrack-base-url: http://dependencytrack-dependency-track-api-server.dependencytrack.svc.cluster.local:8080
+  format: cyclonedx
+  kubernetes-cluster-id: kind-cluster
+  targets: dtrack
+  verbosity: info
+envVars:
+- name: SBOM_DTRACK_API_KEY
+  valueFrom:
+    secretKeyRef:
+      key: accessToken
+      name: sbom-operator

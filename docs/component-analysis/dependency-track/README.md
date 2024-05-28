@@ -22,7 +22,7 @@ Go to [http://localhost:8080](http://localhost:8080) and login with the default 
 
 Create a new API key for the `Automation` team in the `Configuration/Access Management/Teams` section. You mus add the `PROJECT_CREATION_UPLOAD` permission to the team. Export the API key as an environment variable.
 
-![Create API-Key](../assets/dependency-track/create-api-key.png)
+![Create API-Key](../../assets/dependency-track/create-api-key.png)
 
 ```bash
 export API_TOKEN=xxx
@@ -40,13 +40,13 @@ You can search for components in the "Component Search" section. You can search 
 
 An example search for the PURL `pkg:golang/github.com/gorilla/mux@v1.8.1`:
 
-![Component Search](../assets/dependency-track/component-search.png)
+![Component Search](../../assets/dependency-track/component-search.png)
 
 ## Vulnerability Audit
 
 In the "Vulnerability Audit" section, you can see all vulnerabilities of the components in the projects. You can filter by severity, status, and more.
 
-![Vulnerability Audit](../assets/dependency-track/vulnerability-audit.png)
+![Vulnerability Audit](../../assets/dependency-track/vulnerability-audit.png)
 
 ## Policy Management
 
@@ -54,7 +54,7 @@ In the "Policy Management" section, you can create and enforce security, operati
 
 For example you can create a policy that checks if the component has a vulnerability with a severity of `HIGH` and create notifications for it. There are several notification channels available like Slack, Email, Webhook, etc.
 
-![Policy Management](../assets/dependency-track/policy-management.png)
+![Policy Management](../../assets/dependency-track/policy-management.png)
 
 ## Further steps
 
