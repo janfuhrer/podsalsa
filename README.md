@@ -11,7 +11,7 @@
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 <p align="center">
-    <img src="./assets/podsalsa-logo.png" alt="PodSalsa" width="400">
+    <img src="./assets/podsalsa-logo-free.png" alt="PodSalsa" width="400">
 </p>
 
 ---
@@ -35,13 +35,9 @@ The release workflow creates provenance for its builds using the [SLSA standard]
 
 ## Documentation
 
-All the used workflows, security best practices and verification of the artifacts are documented in the following files:
-
-- [GitHub Actions Best Practices](./docs/best-practices.md)
-- [PodSalsa GitHub Workflows](./.github/workflows/README.md)
-- [Verifying the release artifacts](./SECURITY.md#release-verification)
-- [Enforcing SLSA verification on Kubernetes](./kubernetes/README.md)
-- [Component Analysis](./docs/component-analysis.md)
+> [!TIP]
+> All the used workflows, security best practices and more related themes (e.g. component analysis, enforcement on Kubernetes) are documented in this repository.
+> Have a look at the [documentation](./docs/) for more information.
 
 ## Use Cases
 

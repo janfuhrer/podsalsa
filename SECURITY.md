@@ -16,7 +16,7 @@ All signatures are created by [Cosign](https://github.com/sigstore/cosign) using
 
 ### Prerequisites
 
-To verify the release artifacts, you will need the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier), [cosign](https://github.com/sigstore/cosign) and [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) binaries. See the [prerequisites verification](docs/prerequisites-verification.md) for installation instructions.
+To verify the release artifacts, you will need the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier), [cosign](https://github.com/sigstore/cosign) and [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) binaries. See the [prerequisites verification](docs/slsa/prerequisites-verification.md) for installation instructions.
 
 ### Version
 

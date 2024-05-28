@@ -24,7 +24,7 @@ jobs:
       run: echo $MY_SECRET
 ```
 
-![Secrets](./assets/secrets-in-log.png)
+![Secrets](../assets/secrets-in-log.png)
 
 ### Secret scanning
 
@@ -40,7 +40,7 @@ The GitHub Actions runner automatically receives the `GITHUB_TOKEN` with permiss
 
 You can choose the default permissions granted to the `GITHUB_TOKEN` [at the repository level](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#setting-the-permissions-of-the-github_token-for-your-repository). Go to the repository settings, then `Actions/General' and `Workflow permissions'. Here you can set the default permissions to "Read repository contents and packages permissions" and dissallow GitHub Actions to create and approve pull requests.
 
-![Workflow permissions](./assets/workflow-permissions.png)
+![Workflow permissions](../assets/workflow-permissions.png)
 
 **Set permissions**
 
@@ -125,11 +125,11 @@ jobs:
 
 The problem with this approach is the `run` operation, which starts a temporary shell and executes the script. Before running the script, the GitHub context data (`${{ }}`) is parsed and replaced with the resulting values, making it vulnerable to shell command injection. If we use a commit message like `docs: improve"; echo "${MY_SECRET}`, the secret will be printed in the logs. Since GitHub secrets are not printed in the logs, we can use the following commit message to print the secret over two lines: `docs: improve"; echo "${MY_SECRET:0:4}"; echo "${MY_SECRET:4:200}`.
 
-![Script injection](./assets/script-injection.png)
+![Script injection](../assets/script-injection.png)
 
 The value of the `MY_SECRET` secret will be printed in the logs (line 10-11)!
 
-See the [bad-workflow](./examples/bad-workflow.yaml) for the full example.
+See the [bad-workflow](./bad-workflow.yaml) for the full example.
 
 ### Mitigating script injection attacks
 
@@ -161,7 +161,7 @@ jobs:
         fi
 ```
 
-![Mitigated script injection](./assets/mitigate-script-injection.png)
+![Mitigated script injection](../assets/mitigate-script-injection.png)
 
 ## Additional Workflows
 
@@ -191,7 +191,7 @@ Dependabot can be enabled in the repository settings under `Code security and an
 
 The scheduled updates can be configured in the `dependabot.yml` file. All configuration options can be found [here](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file).
 
-ℹ️ See the [dependabot.yml](../.github/dependabot.yml) in this repository for an example of how to configure Dependabot version updates for GitHub Actions, docker and gomod.
+ℹ️ See the [dependabot.yml](../../.github/dependabot.yml) in this repository for an example of how to configure Dependabot version updates for GitHub Actions, docker and gomod.
 
 ### Using code scanning workflows 
 
@@ -203,15 +203,15 @@ To enable CodeQL scanning, you need to add a workflow file to your repository. Y
 
 Go to the `Code security and analysis` tab in the repository settings and click 'Set up' in the `Code scanning` section.
 
-![set up code scanning](./assets/set-up-codeql.png)
+![set up code scanning](../assets/set-up-codeql.png)
 
 If you choose `Advanced`, you can edit the workflow file and customize it to your needs.
 
-![code scanning workflow](./assets/codeql-workflow.png)
+![code scanning workflow](../assets/codeql-workflow.png)
 
 After committing the workflow file, the code scanning will start automatically. You can see the results in the `Code scanning alerts` tab.
 
-ℹ️ See the [CodeQL Workflow Example](../.github/workflows/codeql.yml) in this repository.
+ℹ️ See the [CodeQL Workflow Example](../../.github/workflows/codeql.yml) in this repository.
 
 ## OpenSSF Scorecards
 
@@ -219,15 +219,15 @@ The [OpenSSF Scorecards](https://github.com/ossf/scorecard) helps source maintai
 
 After activating the scorecard workflow, the results are uploaded to the repository's security tab. The results are in the [SARIF](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning) format, which can be viewed in the GitHub UI.
 
-![scorecard results](./assets/scorecard-results.png)
+![scorecard results](../assets/scorecard-results.png)
 
-ℹ️ See the [OpenSSF Workflow Example](../.github/workflows/scorecard.yml) in this repository.
+ℹ️ See the [OpenSSF Workflow Example](../../.github/workflows/scorecard.yml) in this repository.
 
 ### Additional checks
 
 ## Workflow examples
 
-ℹ️ Have a look at the [workflows](../.github/workflows/) in this repository for general workflows to improve the security of your repository and specific go-related workflows.
+ℹ️ Have a look at the [workflows](../../.github/workflows/) in this repository for general workflows to improve the security of your repository and specific go-related workflows.
 
 ## OpenSSF Best Practices Badge
 
@@ -237,13 +237,13 @@ The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a
 
 In order to report information about the security status of a project in a machine-processable way, OpenSSF has created the [Security Insights Specification](https://github.com/ossf/security-insights-spec/blob/main/specification.md). The specification defines a format for the `SECURITY-INSIGHTS.yml` file, which can be used to report project status (e.g. whether the project is actively maintained or not), contribution policies, security artifacts (e.g. threat model, self-assessment) and other security-related information.
 
-ℹ️ The security insights file for this repository can be found in the file [SECURITY-INSIGHTS.yml](../SECURITY-INSIGHTS.yml).
+ℹ️ The security insights file for this repository can be found in the file [SECURITY-INSIGHTS.yml](../../SECURITY-INSIGHTS.yml).
 
 ## OpenSSF Allstar
 
 [Allstar](https://github.com/ossf/allstar) is an OpenSSF project that continuously monitors GitHub organisations or repositories for security best practices. It can create issues in the repositories or fix them automatically. This can be useful to ensure that all repositories in an organisation are following the same security practices. It makes more sense to use Allstar at the organisation level rather than for personal repositories, since most of the checks are already covered by the OpenSSF Scorecard workflow and the OpenSSF Best Practices badge.
 
-ℹ️ The Allstar configuration for this repository can be found in the [.allstar](../.allstar) directory.
+ℹ️ The Allstar configuration for this repository can be found in the [.allstar](../../.allstar) directory.
 
 ## Dependency graph
 

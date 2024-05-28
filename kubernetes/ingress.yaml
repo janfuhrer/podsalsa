@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # cert-manager.io/private-key-algorithm: ECDSA
+    # cert-manager.io/private-key-rotation-policy: Always
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+  labels:
+    app.kubernetes.io/name: podsalsa
+  name: podsalsa
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: podsalsa.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: podsalsa
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - podsalsa.example.com
+    secretName: podsalsa-cert

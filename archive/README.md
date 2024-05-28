@@ -4,7 +4,7 @@ This directory contains not used files but that are kept for historical reasons.
 
 ## Policy controller (Kubernetes enforcement)
 
-This repository [contains an example](../kubernetes/README.md) of how to enforce SLSA verification on the podsalsa image using [Kyverno](https://kyverno.io/).
+This repository [contains an example](../docs/slsa/enforcement-kubernetes/) of how to enforce SLSA verification on the podsalsa image using [Kyverno](https://kyverno.io/).
 Another solution is to use Sigstore's [Policy Controller](https://docs.sigstore.dev/policy-controller/overview/). An example of such a policy is available in the file [policy-controller/clusterimagepolicy.yaml](policy-controller/clusterimagepolicy.yaml). As the Policy Controller is limited to SLSA verification only and is still under active development, it is more convenient to use Kyverno to enforce SLSA verification.
 
 ## SLSA GoReleaser Workflow
@@ -26,4 +26,4 @@ The [Makefile](./Makefile) provides a set of commands to build the container ima
 
 ## SBOM creation with ko
 
-The first approach to creating SBOMs for the container images was to use `ko`. This approach does not sign the SBOMs and is therefore not secure. The configuration used is described in the file [ko-sbom.md](./ko-sbom.md).
+The first approach to creating SBOMs for the container images was to use `ko`. This approach does not sign the SBOMs and is therefore provides no integrity and authenticity guarantees. The configuration used is described in the file [ko-sbom.md](./ko-sbom.md).
