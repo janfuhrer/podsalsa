@@ -74,3 +74,11 @@ yarn dev
 ```
 
 Now the `guac-visualizer` is running on [http://localhost:3000](http://localhost:3000).
+
+## Cleanup
+
+To stop and remove the containers, run:
+
+```bash
+docker compose -f guac-demo-compose.yaml down
+```

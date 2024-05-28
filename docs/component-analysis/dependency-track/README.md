@@ -61,3 +61,11 @@ For example you can create a policy that checks if the component has a vulnerabi
 After importing some SBOMs in Dependency-Track, you can see the vulnerability count and a risk score in the Dashboard.
 
 There are many more features in Dependency-Track which you can explore. Some ideas for further steps are to add the GitHub Advisory vulnerability source, create notifications for new vulnerabilities and implement Dependency-Track in your CI/CD pipeline.
+
+## Cleanup
+
+To stop the containers, run:
+
+```bash
+docker-compose down
+```

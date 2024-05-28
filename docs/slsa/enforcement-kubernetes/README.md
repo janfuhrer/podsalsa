@@ -58,3 +58,11 @@ verify-slsa-provenance-keyless:
   autogen-check-slsa-keyless: 'image attestations verification failed, verifiedCount:
     0, requiredCount: 1, error: no matching attestations: '
 ```
+
+## Cleanup
+
+Delete the local kind cluster:
+
+```bash
+kind delete cluster
+```
