@@ -39,7 +39,8 @@ Install Dependency-Track with the following commands:
 helm repo add dependencytrack https://dependencytrack.github.io/helm-charts
 helm repo update
 
-helm install dependencytrack dependencytrack/dependency-track -n dependencytrack --create-namespace -f values-dtrack.yaml
+helm install dependencytrack dependencytrack/dependency-track \
+    -n dependencytrack --create-namespace -f values-dtrack.yaml
 
 # check if the deployment is ready
 kubectl get pods -n dependencytrack 
@@ -75,10 +76,14 @@ helm repo update
 
 # create namespace and secret
 kubectl create ns sbom-operator
-kubectl create secret generic --from-literal=accessToken=$API_TOKEN sbom-operator -n sbom-operator
+kubectl create secret generic \
+    --from-literal=accessToken=$API_TOKEN \
+    sbom-operator -n sbom-operator
 
 # install sbom-operator
-helm install sbom-operator ckotzbauer/sbom-operator -n sbom-operator --create-namespace -f values-sbom-operator.yaml
+helm install sbom-operator ckotzbauer/sbom-operator \
+    -n sbom-operator --create-namespace \
+    -f values-sbom-operator.yaml
 
 # check if the deployment is ready
 kubectl get pods -n sbom-operator
@@ -101,3 +106,11 @@ Verify that the SBOMs are uploaded to Dependency-Track and the vulnerabilities a
 ![Dependency-Track](../../../assets/sbom-operator/dtrack.png)
 
 You could also upload SBOMs manually to the api [http://0.0.0.0:30080](http://0.0.0.0:30080) (see [manual sbom import](../manual-sbom-import.md))
+
+## Cleanup
+
+Delete the local kind cluster:
+
+```bash
+kind delete cluster
+```
