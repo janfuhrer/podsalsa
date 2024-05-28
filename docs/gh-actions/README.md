@@ -191,7 +191,8 @@ Dependabot can be enabled in the repository settings under `Code security and an
 
 The scheduled updates can be configured in the `dependabot.yml` file. All configuration options can be found [here](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file).
 
-ℹ️ See the [dependabot.yml](../../.github/dependabot.yml) in this repository for an example of how to configure Dependabot version updates for GitHub Actions, docker and gomod.
+> [!NOTE]
+> See the [dependabot.yml](../../.github/dependabot.yml) in this repository for an example of how to configure Dependabot version updates for GitHub Actions, docker and gomod.
 
 ### Using code scanning workflows 
 
@@ -211,7 +212,8 @@ If you choose `Advanced`, you can edit the workflow file and customize it to you
 
 After committing the workflow file, the code scanning will start automatically. You can see the results in the `Code scanning alerts` tab.
 
-ℹ️ See the [CodeQL Workflow Example](../../.github/workflows/codeql.yml) in this repository.
+> [!NOTE]
+> See the [CodeQL Workflow Example](../../.github/workflows/codeql.yml) in this repository.
 
 ## OpenSSF Scorecards
 
@@ -221,29 +223,33 @@ After activating the scorecard workflow, the results are uploaded to the reposit
 
 ![scorecard results](../assets/gh-actions/scorecard-results.png)
 
-ℹ️ See the [OpenSSF Workflow Example](../../.github/workflows/scorecard.yml) in this repository.
+> [!NOTE]
+> See the [OpenSSF Workflow Example](../../.github/workflows/scorecard.yml) in this repository.
 
 ### Additional checks
 
 ## Workflow examples
 
-ℹ️ Have a look at the [workflows](../../.github/workflows/) in this repository for general workflows to improve the security of your repository and specific go-related workflows.
+> [!NOTE]
+> Have a look at the [workflows](../../.github/workflows/) in this repository for general workflows to improve the security of your repository and specific go-related workflows.
 
 ## OpenSSF Best Practices Badge
 
-The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a badge that indicates a project's security best practices score. The badge is generated based on the [OpenSSF Best Practices](https://www.bestpractices.dev/en/criteria/0) criteria. To get the badge, you need to register at the [OpenSSF Best Practices](https://www.bestpractices.dev/en) website and submit your repository. You will then need to answer a questionnaire about the project's security practices. The badge is generated based on the answers and is available once you have started answering the questionnaire. The badge can then be added to the repository's README file.
+The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a badge that indicates a project's security best practices score. The badge is generated based on the [OpenSSF Best Practices criterias](https://www.bestpractices.dev/en/criteria/0). To get the badge, you need to register at the [OpenSSF Best Practices website](https://www.bestpractices.dev/en) and submit your repository. You will then need to answer a questionnaire about the project's security practices. The badge is generated based on the answers and is available once you have started answering the questionnaire. The badge can then be added to the repository's README file.
 
 ## OpenSSF Security Insights Specification
 
 In order to report information about the security status of a project in a machine-processable way, OpenSSF has created the [Security Insights Specification](https://github.com/ossf/security-insights-spec/blob/main/specification.md). The specification defines a format for the `SECURITY-INSIGHTS.yml` file, which can be used to report project status (e.g. whether the project is actively maintained or not), contribution policies, security artifacts (e.g. threat model, self-assessment) and other security-related information.
 
-ℹ️ The security insights file for this repository can be found in the file [SECURITY-INSIGHTS.yml](../../SECURITY-INSIGHTS.yml).
+> [!NOTE]
+> The security insights file for this repository can be found in the file [SECURITY-INSIGHTS.yml](../../SECURITY-INSIGHTS.yml).
 
 ## OpenSSF Allstar
 
 [Allstar](https://github.com/ossf/allstar) is an OpenSSF project that continuously monitors GitHub organisations or repositories for security best practices. It can create issues in the repositories or fix them automatically. This can be useful to ensure that all repositories in an organisation are following the same security practices. It makes more sense to use Allstar at the organisation level rather than for personal repositories, since most of the checks are already covered by the OpenSSF Scorecard workflow and the OpenSSF Best Practices badge.
 
-ℹ️ The Allstar configuration for this repository can be found in the [.allstar](../../.allstar) directory.
+> [!NOTE]
+> The Allstar configuration for this repository can be found in the [.allstar](../../.allstar) directory.
 
 ## Dependency graph
 

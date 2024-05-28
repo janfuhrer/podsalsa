@@ -34,13 +34,13 @@ First, we deploy the [Kyverno policy](./kyverno/clusterpolicy-slsa.yaml) which e
 
 ```bash
 # install kyverno policies
-kubectl apply -f kyverno/clusterpolicy-slsa.yaml
+curl -sSL https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/kyverno/clusterpolicy-slsa.yaml | kubectl apply -f -
 ```
 
 Next, we deploy the podsalsa application with a valid SLSA verification.
 
 ```bash
-kubectl apply -f deployment.yaml
+curl -sSL https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/deployment.yaml | kubectl apply -f -
 
 deployment.apps/podsalsa created
 ```
@@ -48,11 +48,11 @@ deployment.apps/podsalsa created
 Now, we deploy the podsalsa application with an invalid SLSA verification (version `v0.1.0` has no provenance).
 
 ```bash
-kubectl apply -f deployment-fail.yaml
+curl -sSL https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/deployment-fail.yaml | kubectl apply -f -
 
-Error from server: error when creating "deployment-fail.yaml": admission webhook "mutate.kyverno.svc-fail" denied the request: 
+Error from server: error when creating "STDIN": admission webhook "mutate.kyverno.svc-fail" denied the request: 
 
-resource Deployment/default/podsalsa-fail was blocked due to the following policies 
+resource Deployment/default/podsalsa was blocked due to the following policies 
 
 verify-slsa-provenance-keyless:
   autogen-check-slsa-keyless: 'image attestations verification failed, verifiedCount:

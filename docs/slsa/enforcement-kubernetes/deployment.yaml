@@ -13,7 +13,7 @@ spec:
         app.kubernetes.io/name: podsalsa
     spec:
       containers:
-      - image: v0.4.1@sha256:ff954525227a38ec863328f3d8c974cdcb3997ac038e29df3b0c4151d878a712
+      - image: ghcr.io/janfuhrer/podsalsa:v0.4.1@sha256:ff954525227a38ec863328f3d8c974cdcb3997ac038e29df3b0c4151d878a712
         imagePullPolicy: Always
         name: podsalsa
         resources:

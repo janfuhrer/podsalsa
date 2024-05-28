@@ -4,12 +4,13 @@ The [Sigstore project](https://www.sigstore.dev/) was founded in 2021 to create 
 
 The following are the major components of the Sigstore project:
 
-- **Rekor**: An immutable, tamper-resistant ledger of metadata that acts as a transparency log for storing signatures.
-- **Cosign**: A tool for signing and verifying artifacts and containers.
-- **Sigstore**: A free-to-use certification authority for code signing certificates.
+- **[Rekor](https://github.com/sigstore/rekor)**: An immutable, tamper-resistant ledger of metadata that acts as a transparency log for storing signatures.
+- **[Cosign](https://github.com/sigstore/cosign)**: A tool for signing and verifying artifacts and containers.
+- **[Fulcio](https://github.com/sigstore/fulcio)**: A free-to-use certification authority for code signing certificates.
 
 **Sigstore Trust Root**
-Sigstore's trust model originates from the Trust Root and chains down to the short-lived certificates issued by Fulcio. The Trust Root was established during a public root key signing ceremony ([link](https://www.youtube.com/watch?v=GEuFsc8Zm9U) in 2021.
+
+Sigstore's trust model originates from the Trust Root and chains down to the short-lived certificates issued by Fulcio. The Trust Root was established during a public root key signing ceremony ([link](https://www.youtube.com/watch?v=GEuFsc8Zm9U)) in 2021.
 
 ## Signing
 
@@ -34,7 +35,7 @@ To verify, a Sigstore client downloads the artifact and provenance (e.g., go bin
 
 ![Verification](../../assets/sigstore/verification.png)
 
-The whole verification process is automated and can be done with the Sigstore Cosign or the slsa-verifier tool.
+The whole verification process is automated and can be done with the Sigstore `cosign` or the `slsa-verifier` tool.
 
 ## Examples
 

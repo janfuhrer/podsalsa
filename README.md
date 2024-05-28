@@ -16,8 +16,8 @@
 
 ---
 
-PodSalsa is a simple web application that only displays information about the release version of the application, the Git commit and the build date.
-The goal of this project is to provide a simple example of a Go application on GitHub with GitHub Actions for building and releasing the application in a secure way. The focus is on providing a summary/documentation of GitHub Actions best practices, code scanning workflows, vulnerability scanning, and techniques for releasing secure software to improve the security of the software supply chain.
+PodSalsa is a simple web application that only displays information about the release version of the application, the Git commit, and the build date.
+The goal of this project is to provide a simple example of a Go application on GitHub with GitHub Actions for building and releasing the application in a secure way. The focus is on providing a summary/documentation of GitHub Actions best practices, code scanning workflows, vulnerability scanning, and techniques for releasing secure software to improve the security of the software supply chain. This project serves as a starting point for developers interested in supply chain security, artifact provenance, and verification.
 
 ## Release
 
@@ -35,7 +35,7 @@ The release workflow creates provenance for its builds using the [SLSA standard]
 
 ## Documentation
 
-> [!TIP]
+> [!NOTE]
 > All the used workflows, security best practices and more related themes (e.g. component analysis, enforcement on Kubernetes) are documented in this repository.
 > Have a look at the [documentation](./docs/) for more information.
 

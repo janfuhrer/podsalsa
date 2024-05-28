@@ -53,6 +53,8 @@ Inspect the imported SBOMs:
 guacone query known package "pkg:golang/github.com/janfuhrer/podsalsa@$VERSION"
 ```
 
+![guac-search-package](../../assets/guac/guac-search-package.png)
+
 ## Mark a package as vulnerable
 
 Vulnerabilities are scanned against the [OSV](https://osv.dev/) database. To mark a package manually as vulnerable (e.g. in case of a zero day), use the following command:
@@ -71,6 +73,6 @@ guacone query bad
 
 This returns a "Visualizer url" which can be opened in a browser to see the affected packages in the `guac-visualizer` running on `localhost:8080`.
 
-![guac-visualizer](../assets/guac/guac-visualizer.png)
+![guac-visualizer](../../assets/guac/guac-visualizer.png)
 
 More information can be found in the [GUAC Docs](https://docs.guac.sh/).

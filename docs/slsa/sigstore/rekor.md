@@ -4,7 +4,11 @@ It is possible to communicate with the Rekor transparency log using the `rekor-c
 
 ## Pre-requisites
 
-- [rekor-cli](https://github.com/sigstore/rekor/releases)
+You can download the `rekor-cli` from the [Rekor releases page](https://github.com/sigstore/rekor/releases) or use Homebrew:
+
+```bash
+brew install rekor-cli
+```
 
 ## Usage
 
@@ -32,5 +36,7 @@ rekor-cli get --format json --uuid ${UUID} | jq
 To retrieve the short-lived certificate from the Rekor log entry, you can use the following command:
 
 ```bash
-rekor-cli get --format json --uuid ${UUID} | jq -r '.Body.DSSEObj.signatures[].verifier' | base64 -d | openssl x509 -text -noout
+rekor-cli get --format json --uuid ${UUID} | \
+    jq -r '.Body.DSSEObj.signatures[].verifier' | \
+    base64 -d | openssl x509 -text -noout
 ```
