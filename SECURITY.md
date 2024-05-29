@@ -40,7 +40,7 @@ cat multiple.intoto.jsonl | jq -r '.payload' | base64 -d | jq
 
 ### Verify provenance of release artifacts
 
-To verify the release artifacts (go binaries and SBOMs) you can use the `slsa-verifier`. This verification works for all release artifcats (`*.tar.gz`, `*.zip`, `*.sbom`).
+To verify the release artifacts (go binaries and SBOMs) you can use the `slsa-verifier`. This verification works for all release artifcats (`*.tar.gz`, `*.zip`, `*.sbom.json`).
 
 ```bash
 # example for the "podsalsa-darwin-amd64.tar.gz" artifact
@@ -191,7 +191,7 @@ The Software Bill of Materials (SBOM) is generated in CycloneDX JSON format for 
 
 #### Go binary archives
 
-The SBOMs of the Go binary archives are provided in the `*.tar.gz.sbom` files of the release and can be verified using the `slsa-verifier` (see [Verify the provenance of release artifacts](#verify-provenance-of-release-artifacts)).
+The SBOMs of the Go binary archives are provided in the `*.tar.gz.sbom.json` files of the release and can be verified using the `slsa-verifier` (see [Verify the provenance of release artifacts](#verify-provenance-of-release-artifacts)).
 
 #### Container images
 

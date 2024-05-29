@@ -75,7 +75,7 @@ The release workflow includes multiple jobs to create a release of the project. 
 ### Go Release
 
 This repository uses [goreleaser](https://goreleaser.com/) to create all the release artifacts. GoReleaser can build and release Go binaries for multiple platforms, create archives/container images/SBOMs and more. All the configuration for the release is stored in the file [.goreleaser.yml](./../../.goreleaser.yml).
-For all the release artifacts (`*.tar.gz`, `*.zip`, `*.sbom`), provenance is generated using the [SLSA Generic Generator](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md). The provenance file is uploaded to the release assets and can be verified using the `slsa-verifier` tool (see [Release Verification](./../../SECURITY.md#release-verification)).
+For all the release artifacts (`*.tar.gz`, `*.zip`, `*.sbom.json`), provenance is generated using the [SLSA Generic Generator](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md). The provenance file is uploaded to the release assets and can be verified using the `slsa-verifier` tool (see [Release Verification](./../../SECURITY.md#release-verification)).
 
 ### Container Release
 
