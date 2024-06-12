@@ -38,7 +38,7 @@ The GitHub Actions runner automatically receives the `GITHUB_TOKEN` with permiss
 
 **Default workflow permissions**
 
-You can choose the default permissions granted to the `GITHUB_TOKEN` [at the repository level](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#setting-the-permissions-of-the-github_token-for-your-repository). Go to the repository settings, then `Actions/General' and `Workflow permissions'. Here you can set the default permissions to "Read repository contents and packages permissions" and dissallow GitHub Actions to create and approve pull requests.
+You can choose the default permissions granted to the `GITHUB_TOKEN` [at the repository level](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#setting-the-permissions-of-the-github_token-for-your-repository). Go to the repository settings, then `Actions/General' and `Workflow permissions'. Here you can set the default permissions to "Read repository contents and packages permissions" and disallow GitHub Actions to create and approve pull requests.
 
 ![Workflow permissions](../assets/gh-actions/workflow-permissions.png)
 
@@ -235,7 +235,7 @@ After activating the scorecard workflow, the results are uploaded to the reposit
 
 ## OpenSSF Best Practices Badge
 
-The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a badge that indicates a project's security best practices score. The badge is generated based on the [OpenSSF Best Practices criterias](https://www.bestpractices.dev/en/criteria/0). To get the badge, you need to register at the [OpenSSF Best Practices website](https://www.bestpractices.dev/en) and submit your repository. You will then need to answer a questionnaire about the project's security practices. The badge is generated based on the answers and is available once you have started answering the questionnaire. The badge can then be added to the repository's README file.
+The [Open Source Security Foundation (OpenSSF)](https://openssf.org/) provides a badge that indicates a project's security best practices score. The badge is generated based on the [OpenSSF Best Practices criteria](https://www.bestpractices.dev/en/criteria/0). To get the badge, you need to register at the [OpenSSF Best Practices website](https://www.bestpractices.dev/en) and submit your repository. You will then need to answer a questionnaire about the project's security practices. The badge is generated based on the answers and is available once you have started answering the questionnaire. The badge can then be added to the repository's README file.
 
 ## OpenSSF Security Insights Specification
 
@@ -290,4 +290,4 @@ The dependency graph can be exported as an SPDX-compliant software bill of mater
 **OpenSSF Best Practices**
 
 - [Sign Up](https://www.bestpractices.dev/en)
-- [Criterias](https://www.bestpractices.dev/en/criteria/0)
+- [Criteria](https://www.bestpractices.dev/en/criteria/0)

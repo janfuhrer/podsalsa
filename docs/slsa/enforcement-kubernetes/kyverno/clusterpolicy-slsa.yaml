@@ -25,7 +25,7 @@ spec:
       mutateDigest: true
       # enforces that digest are used for matching images (default: true)
       verifyDigest: true
-      # Kyverno caches sucessful verified images by default (default: true)
+      # Kyverno caches successful verified images by default (default: true)
       useCache: true
       # which images to verify
       imageReferences:
