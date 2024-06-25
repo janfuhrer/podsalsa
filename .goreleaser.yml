@@ -62,11 +62,12 @@ signs:
 release:
   # allow pre-release versions (e.g. by tagging with v1.0.0-rc0)
   prerelease: auto
+  draft: true
   footer: |
     **Full Changelog**: https://github.com/janfuhrer/{{ .ProjectName }}/compare/{{ .PreviousTag }}...{{ .Tag }}
 
     **Docker Images**
-    - `ghcr.io/janfuhrer/{{ .ProjectName }}:{{ .Version }}`
+    - `ghcr.io/janfuhrer/{{ .ProjectName }}:v{{ .Version }}`
     {{ if not .Prerelease }}- `ghcr.io/janfuhrer/{{ .ProjectName }}:latest`{{ end }}
 
 # github changelog for new release
