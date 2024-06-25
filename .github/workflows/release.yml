@@ -167,7 +167,7 @@ jobs:
           set -euo pipefail
           COSIGN_REPOSITORY=ghcr.io/$REPOSITORY/signatures cosign verify \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-            --certificate-identity-regexp '^https://github.com/$GITHUB_REPOSITORY/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
             $IMAGE@$DIGEST
 
       - name: Verify sbom of image
@@ -180,6 +180,6 @@ jobs:
           COSIGN_REPOSITORY=ghcr.io/$REPOSITORY/sbom cosign verify-attestation \
             --type cyclonedx \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-            --certificate-identity-regexp '^https://github.com/$GITHUB_REPOSITORY/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
             --policy policy-sbom.cue \
             $IMAGE@$DIGEST
