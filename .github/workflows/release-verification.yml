@@ -23,7 +23,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh -R "$GITHUB_REPOSITORY" release download "$GITHUB_REF"
+          echo "Downloading release assets (tag: $GITHUB_REF_NAME)"
+          gh -R "$GITHUB_REPOSITORY" release download "$GITHUB_REF_NAME"
       # verify each artifact in checksum.txt file with the provenance
       - name: Verify assets
         run: |
@@ -43,6 +44,6 @@ jobs:
             echo "Verifying $fn"
             slsa-verifier verify-artifact --provenance-path "multiple.intoto.jsonl" \
                                           --source-uri "github.com/$GITHUB_REPOSITORY" \
-                                          --source-tag "$GITHUB_REF" \
+                                          --source-tag "$GITHUB_REF_NAME" \
                                           "$fn"
           done <<<"$checksums"
