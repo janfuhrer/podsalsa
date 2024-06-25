@@ -23,6 +23,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          echo "Downloading release assets (tag: $GITHUB_REF)"
           gh -R "$GITHUB_REPOSITORY" release download "$GITHUB_REF"
       # verify each artifact in checksum.txt file with the provenance
       - name: Verify assets
