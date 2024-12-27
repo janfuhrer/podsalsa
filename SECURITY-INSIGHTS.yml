@@ -1,8 +1,8 @@
 header:
   schema-version: 1.0.0
-  expiration-date: '2025-04-25T10:00:00.000Z'
+  expiration-date: '2025-12-27T10:00:00.000Z'
   last-updated: '2024-04-28'
-  last-reviewed: '2024-04-28'
+  last-reviewed: '2024-12-27'
   project-url: https://github.com/janfuhrer/podsalsa
   changelog: https://github.com/janfuhrer/podsalsa/blob/main/CHANGELOG.md
   license: https://github.com/janfuhrer/podsalsa/blob/main/LICENSE
