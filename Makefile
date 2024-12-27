@@ -15,6 +15,17 @@ go-tidy:
 	go mod tidy -compat=1.23
 	@echo "Go modules tidied."
 
+.PHONY: go-lint
+go-lint:
+	golangci-lint run
+	@echo "Go lint completed."
+
+.PHONY: go-update
+go-update:
+	go get -u ./...
+	make go-tidy
+	@echo "Go modules updated."
+
 .PHONY: go-build
 go-build:
 	go build -o $(NAME) -trimpath -tags="netgo" -ldflags "-s -w -X main.Version=$(VERSION) -X main.Commit=$(COMMIT_REF) -X main.BuildTime=$(BUILD_DATE)" main.go
