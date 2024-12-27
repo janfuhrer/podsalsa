@@ -12,7 +12,7 @@ GOARCH     ?= $(shell go env GOARCH)
 
 .PHONY: go-tidy
 go-tidy:
-	go mod tidy -compat=1.22
+	go mod tidy -compat=1.23
 	@echo "Go modules tidied."
 
 .PHONY: go-build
@@ -24,7 +24,8 @@ go-build:
 # TOOLS #
 #########
 
-KO_VERSION  = v0.15.2
+# https://github.com/ko-build/ko/releases
+KO_VERSION  = v0.17.1
 KO = $(shell pwd)/bin/ko
 
 ko:
