@@ -12,7 +12,7 @@ GOARCH     ?= $(shell go env GOARCH)
 
 .PHONY: go-tidy
 go-tidy:
-	go mod tidy -compat=1.23
+	go mod tidy -compat=1.24
 	@echo "Go modules tidied."
 
 .PHONY: go-lint
