@@ -36,7 +36,7 @@ You can manually inspect the provenance of the release artifacts (without contai
 curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/multiple.intoto.jsonl
 
 # decode the payload
-cat multiple.intoto.jsonl | jq -r '.payload' | base64 -d | jq
+cat multiple.intoto.jsonl | jq -r '.dsseEnvelope.payload' | base64 -d | jq
 ```
 
 ### Verify provenance of release artifacts
@@ -100,7 +100,7 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify-attestation \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
   --policy policy.cue \
-  $IMAGE | jq
+  $IMAGE | jq -r '.payload' | base64 -d | jq
 ```
 
 Example output:
@@ -108,20 +108,20 @@ Example output:
 ```bash
 will be validating against CUE policies: [policy.cue]
 
-Verification for ghcr.io/janfuhrer/podsalsa:v0.4.0-rc.7@sha256:b76ecae19894c6fe57bcf81ff285e99d2f732bffcc9930fa77a86101edd59015 --
+Verification for ghcr.io/janfuhrer/podsalsa:v0.6.2@sha256:d6eaa2ae653ee894e7c1bb0e27d50bc94cb65ac65ace5daa8818ff0a30879cbc --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
   - The code-signing certificate was verified using trusted certificate authority certificates
-Certificate subject: https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v2.0.0
+Certificate subject: https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v2.1.0
 Certificate issuer URL: https://token.actions.githubusercontent.com
 GitHub Workflow Trigger: push
-GitHub Workflow SHA: b51bec9abab403d55c54d2c9b60a12433cc9e102
+GitHub Workflow SHA: b0e7f0a52697533f31ed6d8c6c3fa813449bff88
 GitHub Workflow Name: goreleaser
 GitHub Workflow Repository: janfuhrer/podsalsa
-GitHub Workflow Ref: refs/tags/v0.4.0-rc.7
+GitHub Workflow Ref: refs/tags/v0.6.2
 {
-  "payloadType": "application/vnd.in-toto+json",
+  "_type": "https://in-toto.io/Statement/v0.1",
 (...)
 ```
 
@@ -140,7 +140,7 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
 Example output:
 
 ```bash
-Verification for ghcr.io/janfuhrer/podsalsa@sha256:b76ecae19894c6fe57bcf81ff285e99d2f732bffcc9930fa77a86101edd59015 --
+Verification for ghcr.io/janfuhrer/podsalsa@sha256:d6eaa2ae653ee894e7c1bb0e27d50bc94cb65ac65ace5daa8818ff0a30879cbc --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
@@ -219,18 +219,18 @@ Example output:
 ```bash
 will be validating against CUE policies: [policy-sbom.cue]
 
-Verification for ghcr.io/janfuhrer/podsalsa:v0.4.0-rc.7@sha256:b76ecae19894c6fe57bcf81ff285e99d2f732bffcc9930fa77a86101edd59015 --
+Verification for ghcr.io/janfuhrer/podsalsa:v0.6.2@sha256:d6eaa2ae653ee894e7c1bb0e27d50bc94cb65ac65ace5daa8818ff0a30879cbc --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
   - The code-signing certificate was verified using trusted certificate authority certificates
-Certificate subject: https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v0.4.0-rc.7
+Certificate subject: https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v0.6.2
 Certificate issuer URL: https://token.actions.githubusercontent.com
 GitHub Workflow Trigger: push
-GitHub Workflow SHA: b51bec9abab403d55c54d2c9b60a12433cc9e102
+GitHub Workflow SHA: b0e7f0a52697533f31ed6d8c6c3fa813449bff88
 GitHub Workflow Name: goreleaser
 GitHub Workflow Repository: janfuhrer/podsalsa
-GitHub Workflow Ref: refs/tags/v0.4.0-rc.7
+GitHub Workflow Ref: refs/tags/v0.6.2
 {
   "_type": "https://in-toto.io/Statement/v0.1",
 (...)
