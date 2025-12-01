@@ -152,17 +152,6 @@ The following checks were performed on each of these signatures:
 (...)
 ```
 
-If you want to see the entire certificate of the signature, you can use the following command:
-
-```bash
-COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
-  $IMAGE | jq -r '.[].optional.Bundle.Payload.body' | \
-  base64 -d | jq -r '.spec.signature.publicKey.content' | \
-  base64 -d | openssl x509 -text -noout
-```
-
 > [!IMPORTANT]
 > Verifying the provenance of a container image ensures the integrity and authenticity of the image because the provenance (with the image digest) is signed with Cosign. The container images themselves are also signed with Cosign, but the signature is not necessary for verification if the provenance is verified. Provenance verification is a stronger security guarantee than image signing because it verifies the entire build process, not just the final image. Image signing is therefore not essential if provenance verification is.
 
@@ -175,10 +164,11 @@ The checksum file can be verified with `cosign` as follows:
 ```bash
 # download the checksum
 curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/checksums.txt
+curl -L -O https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/checksums.txt.sigstore.json
 
 # verify the checksum file
 cosign verify-blob \
-	--bundle https://github.com/janfuhrer/podsalsa/releases/download/$VERSION/checksums.sigstore.json \
+	--bundle checksums.txt.sigstore.json \
 	--certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
 	--certificate-oidc-issuer https://token.actions.githubusercontent.com \
 	checksums.txt
