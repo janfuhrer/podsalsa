@@ -65,8 +65,6 @@ runs:
         path: ${{ inputs.sbom-name }}-bom.cdx.json
     - shell: bash
       if: ${{ inputs.sign-image == 'true' }}
-      env:
-        COSIGN_REPOSITORY: ${{ inputs.signature-repository }}
       run: |
         set -e
         cosign sign --yes \
@@ -75,8 +73,6 @@ runs:
           -a "ref=${{ github.sha }}" \
           ${{ steps.ko-publish.outputs.digest }}
     - shell: bash
-      env:
-        COSIGN_REPOSITORY: ${{ inputs.sbom-repository }}
       run: |
         cosign attest --yes \
           --predicate  ./${{ inputs.sbom-name }}-bom.cdx.json \
