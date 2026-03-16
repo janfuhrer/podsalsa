@@ -17,6 +17,10 @@ tags
 # Test binary, build with `go test -c`
 *.test
 
+# Go test coverage output
+coverage.out
+*.coverprofile
+
 .idea/
 release/
 build/
