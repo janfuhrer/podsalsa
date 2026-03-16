@@ -45,7 +45,8 @@ export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releas
 IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
 IMAGE="${IMAGE}@"$(crane digest "${IMAGE}")
 
-COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
+cosign verify-attestation \
+  --new-bundle-format \
   --type cyclonedx \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \

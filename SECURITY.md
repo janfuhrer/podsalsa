@@ -10,9 +10,15 @@ The contributor will send a response indicating the next steps in handling your 
 
 ## Release verification
 
-The release workflow creates provenance for its builds using the [SLSA standard](https://slsa.dev), which conforms to the [Level 3 specification](https://slsa.dev/spec/v1.0/levels#build-l3). The provenance is stored in the `multiple.intoto.jsonl` file of each release and can be used to verify the integrity and authenticity of the release artifacts.
+The release workflow creates provenance for its builds using the [SLSA standard](https://slsa.dev), which conforms to the [Level 3 specification](https://slsa.dev/spec/v1.2/build-track-basics#build-l3). The provenance is stored in the `multiple.intoto.jsonl` file of each release and can be used to verify the integrity and authenticity of the release artifacts.
 
 All signatures are created by [Cosign](https://github.com/sigstore/cosign) using the [keyless signing](https://docs.sigstore.dev/cosign/verifying/verify/#keyless-verification-using-openid-connect) method. An overview how the keyless signing works can be found [here](./docs/slsa/sigstore/).
+
+> [!NOTE]
+> **Verification by release version**
+> - **v0.9.0+**: Signatures and SBOM attestations are stored as OCI 1.1 referrers in the image repository (`ghcr.io/janfuhrer/podsalsa`). Use the commands in this document.
+> - **≤ v0.7.x**: Signatures and SBOM attestations were stored in separate repositories. See [Legacy verification (≤ v0.7.x)](#legacy-verification--v07x).
+> - **v0.8.x**: Affected by a cosign 2.4 migration issue — image signature and SBOM attestation verification is not available for these releases. SLSA provenance verification is unaffected.
 
 ### Prerequisites
 
@@ -20,10 +26,9 @@ To verify the release artifacts, you will need the [slsa-verifier](https://githu
 
 ### Version
 
-All of the following commands require the `VERSION` environment variable to be set to the version of the release you want to verify. You can set the variable manually or the the latest version with the following command:
+All of the following commands require the `VERSION` environment variable to be set to the version of the release you want to verify. You can set the variable manually or use the latest version with the following command:
 
 ```bash
-# get the latest release
 export VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
 ```
 
@@ -73,13 +78,12 @@ The `slsa-verifier` can also verify docker images. Verification can be done by t
 IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
 
 # get the image digest and append it to the image name
-#   e.g. ghcr.io/janfuhrer/podsalsa:v0.2.0@sha256:...
+#   e.g. ghcr.io/janfuhrer/podsalsa:v0.9.0@sha256:...
 IMAGE="${IMAGE}@"$(crane digest "${IMAGE}")
 
 # verify the image
 slsa-verifier verify-image \
   --source-uri github.com/janfuhrer/podsalsa \
-  --provenance-repository ghcr.io/janfuhrer/signatures \
   --source-versioned-tag $VERSION \
   $IMAGE
 ```
@@ -88,14 +92,15 @@ The output should be: `PASSED: Verified SLSA provenance`.
 
 **Verify with Cosign**
 
-As an alternative to the SLSA verifier, you can use `cosign` to verify the provenance of the container images. Cosign also supports validating the attestation against `CUE` policies (see [Validate In-Toto Attestation](https://docs.sigstore.dev/cosign/verifying/attestation/#validate-in-toto-attestations) for more information), which is useful to ensure that some specific requirements are met. We provide a [policy.cue](./policy.cue) file to verify the correct workflow has triggered the release and that the image was generated from the correct source repository. 
+As an alternative to the SLSA verifier, you can use `cosign` to verify the provenance of the container images. Cosign also supports validating the attestation against `CUE` policies (see [Validate In-Toto Attestation](https://docs.sigstore.dev/cosign/verifying/attestation/#validate-in-toto-attestations) for more information), which is useful to ensure that some specific requirements are met. We provide a [policy.cue](./policy.cue) file to verify the correct workflow has triggered the release and that the image was generated from the correct source repository.
 
 ```bash
 # download policy.cue
 curl -L -O https://raw.githubusercontent.com/janfuhrer/podsalsa/main/policy.cue
 
-# verify the image with cosign (at the moment use `--new-bundle-format=false` as the new format is not yet supported for SLSA provenance)
-COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify-attestation \
+# verify the image provenance with cosign
+# note: SLSA provenance uses the old bundle format (--new-bundle-format=false)
+cosign verify-attestation \
   --type slsaprovenance \
   --new-bundle-format=false \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
@@ -109,7 +114,7 @@ Example output:
 ```bash
 will be validating against CUE policies: [policy.cue]
 
-Verification for ghcr.io/janfuhrer/podsalsa:v0.6.2@sha256:d6eaa2ae653ee894e7c1bb0e27d50bc94cb65ac65ace5daa8818ff0a30879cbc --
+Verification for ghcr.io/janfuhrer/podsalsa:v0.9.0@sha256:... --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
@@ -117,22 +122,20 @@ The following checks were performed on each of these signatures:
 Certificate subject: https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v2.1.0
 Certificate issuer URL: https://token.actions.githubusercontent.com
 GitHub Workflow Trigger: push
-GitHub Workflow SHA: b0e7f0a52697533f31ed6d8c6c3fa813449bff88
 GitHub Workflow Name: goreleaser
 GitHub Workflow Repository: janfuhrer/podsalsa
-GitHub Workflow Ref: refs/tags/v0.6.2
-{
-  "_type": "https://in-toto.io/Statement/v0.1",
 (...)
 ```
 
 ### Verify signature of container image
 
-The container images are additionally signed with cosign. The signature can be verified with the `cosign` binary.
+The container images are additionally signed with cosign. The signature is stored as an OCI 1.1 referrer in the image repository and can be verified with the `cosign` binary.
+
 **Important**: only the multi-arch image is signed, not the individual platform images.
 
 ```bash
-COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
+cosign verify \
+  --new-bundle-format \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
   $IMAGE | jq
@@ -141,7 +144,7 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
 Example output:
 
 ```bash
-Verification for ghcr.io/janfuhrer/podsalsa@sha256:d6eaa2ae653ee894e7c1bb0e27d50bc94cb65ac65ace5daa8818ff0a30879cbc --
+Verification for ghcr.io/janfuhrer/podsalsa@sha256:... --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
@@ -186,11 +189,84 @@ The SBOMs of the Go binary archives are provided in the `*.tar.gz.sbom.json` fil
 
 #### Container images
 
-The SBOMs of the container is attestated with Cosign and uploaded to the `ghcr.io/janfuhrer/sbom` repository. The SBOMs can be verified with the `cosign` binary.
+The SBOM of the container image is attested with Cosign and stored as an OCI 1.1 referrer in the image repository. The SBOM can be verified with the `cosign` binary.
 
 **Important**: Only the multi-arch image has a SBOM, not the individual platform images.
 
 **Verify provenance of the SBOM**
+
+```bash
+# download policy-sbom.cue
+curl -L -O https://raw.githubusercontent.com/janfuhrer/podsalsa/main/policy-sbom.cue
+
+cosign verify-attestation \
+  --new-bundle-format \
+  --type cyclonedx \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  --policy policy-sbom.cue \
+  $IMAGE | jq -r '.payload' | base64 -d | jq
+```
+
+Example output:
+
+```bash
+will be validating against CUE policies: [policy-sbom.cue]
+
+Verification for ghcr.io/janfuhrer/podsalsa:v0.9.0@sha256:... --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates
+Certificate subject: https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v0.9.0
+Certificate issuer URL: https://token.actions.githubusercontent.com
+GitHub Workflow Trigger: push
+GitHub Workflow Name: goreleaser
+GitHub Workflow Repository: janfuhrer/podsalsa
+(...)
+```
+
+**Download SBOM**
+
+If you want to download the SBOM of the container image, you can use the following command:
+
+```bash
+cosign verify-attestation \
+  --new-bundle-format \
+  --type cyclonedx \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  --policy policy-sbom.cue \
+  $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > sbom.json
+```
+
+### Rekor
+
+How to communicate with the Rekor transparency log directly is described in the [Rekor documentation](docs/slsa/sigstore/rekor.md).
+
+---
+
+## Legacy verification (≤ v0.7.x)
+
+For releases up to and including **v0.7.x**, signatures and SBOM attestations were stored in separate OCI repositories using the classic cosign tag scheme (`.sig` / `.att` suffixes):
+
+- Image signatures → `ghcr.io/janfuhrer/signatures`
+- SBOM attestations → `ghcr.io/janfuhrer/sbom`
+- SLSA provenance → `ghcr.io/janfuhrer/signatures` (v0.9.0+ stores provenance in the image repository)
+
+> [!NOTE]
+> The `ghcr.io/janfuhrer/signatures` and `ghcr.io/janfuhrer/sbom` repositories are retired as of v0.9.0. All signatures, SBOM attestations, and SLSA provenance are now stored directly in the image repository `ghcr.io/janfuhrer/podsalsa` as OCI 1.1 referrers.
+
+**Verify image signature (≤ v0.7.x)**
+
+```bash
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  $IMAGE | jq
+```
+
+**Verify SBOM attestation (≤ v0.7.x)**
 
 ```bash
 # download policy-sbom.cue
@@ -204,31 +280,7 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
   $IMAGE | jq -r '.payload' | base64 -d | jq
 ```
 
-Example output:
-
-```bash
-will be validating against CUE policies: [policy-sbom.cue]
-
-Verification for ghcr.io/janfuhrer/podsalsa:v0.6.2@sha256:d6eaa2ae653ee894e7c1bb0e27d50bc94cb65ac65ace5daa8818ff0a30879cbc --
-The following checks were performed on each of these signatures:
-  - The cosign claims were validated
-  - Existence of the claims in the transparency log was verified offline
-  - The code-signing certificate was verified using trusted certificate authority certificates
-Certificate subject: https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v0.6.2
-Certificate issuer URL: https://token.actions.githubusercontent.com
-GitHub Workflow Trigger: push
-GitHub Workflow SHA: b0e7f0a52697533f31ed6d8c6c3fa813449bff88
-GitHub Workflow Name: goreleaser
-GitHub Workflow Repository: janfuhrer/podsalsa
-GitHub Workflow Ref: refs/tags/v0.6.2
-{
-  "_type": "https://in-toto.io/Statement/v0.1",
-(...)
-```
-
-**Download SBOM**
-
-If you want to download the SBOM of the container image, you can use the following command:
+**Download SBOM (≤ v0.7.x)**
 
 ```bash
 COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
@@ -239,6 +291,18 @@ COSIGN_REPOSITORY=ghcr.io/janfuhrer/sbom cosign verify-attestation \
   $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > sbom.json
 ```
 
-### Rekor
+**Verify SLSA provenance (≤ v0.7.x)**
 
-How to communicate with the Rekor transparency log directly is described in the [Rekor documentation](docs/slsa/sigstore/rekor.md).
+For v0.7.x and earlier, SLSA provenance was stored in `ghcr.io/janfuhrer/signatures`:
+
+```bash
+COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign verify-attestation \
+  --type slsaprovenance \
+  --new-bundle-format=false \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
+  --policy policy.cue \
+  $IMAGE | jq -r '.payload' | base64 -d | jq
+```
+
+For v0.9.0+, use the commands in the [main section](#verify-provenance-of-container-images) above (no `COSIGN_REPOSITORY` needed).

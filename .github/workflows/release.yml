@@ -88,8 +88,6 @@ jobs:
           version: ${{ github.ref_name }}
           sign-image: true
           sbom-name: podsalsa
-          sbom-repository: ghcr.io/${{ github.repository_owner }}/sbom
-          signature-repository: ghcr.io/${{ github.repository_owner }}/signatures
           main-path: ./
 
   binary-provenance:
@@ -118,7 +116,6 @@ jobs:
       digest: ${{ needs.ko-publish.outputs.digest }}
       registry-username: ${{ github.actor }}
       provenance-registry-username: ${{ github.actor }}
-      provenance-repository: ghcr.io/${{ github.repository_owner }}/signatures
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
       provenance-registry-password: ${{ secrets.GITHUB_TOKEN }}
@@ -148,10 +145,9 @@ jobs:
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
           DIGEST: ${{ needs.ko-publish.outputs.digest }}
-          REPOSITORY: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
-          COSIGN_REPOSITORY=ghcr.io/$REPOSITORY/signatures cosign verify-attestation \
+          cosign verify-attestation \
             --type slsaprovenance \
             --new-bundle-format=false \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \

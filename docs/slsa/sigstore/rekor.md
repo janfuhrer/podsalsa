@@ -16,8 +16,10 @@ brew install rekor-cli
 VERSION=$(curl -s "https://api.github.com/repos/janfuhrer/podsalsa/releases/latest" | jq -r '.tag_name')
 IMAGE=ghcr.io/janfuhrer/podsalsa:$VERSION
 
-# inspect attestation and get shasum of the image in the attestation
-SHASUM=$(COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures cosign download attestation $IMAGE | jq -r '.payload' | base64 -d | jq -r '.subject[].digest.sha256')
+# inspect the SLSA provenance attestation and get the image shasum
+# note: SLSA provenance is stored in the old bundle format in the image repository (v0.9.0+)
+#       for v0.7.x and earlier, add: COSIGN_REPOSITORY=ghcr.io/janfuhrer/signatures
+SHASUM=$(cosign download attestation $IMAGE | jq -r '.payload' | base64 -d | jq -r '.subject[].digest.sha256')
 
 # get rekor uuids
 rekor-cli search --sha $SHASUM
