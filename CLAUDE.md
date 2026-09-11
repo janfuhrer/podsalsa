@@ -87,13 +87,40 @@ gh release view --repo CycloneDX/cyclonedx-gomod --json tagName -q '.tagName'
 gh release view --repo cue-lang/cue --json tagName -q '.tagName'
 ```
 
-### 8. Verify the release pipeline still lints
+### 8. Update the pinned container base image
+
+[.ko.yaml](.ko.yaml) pins `defaultBaseImage` by digest so a release cannot pick up a
+different base. Refresh it periodically (nothing automates this — Dependabot does not
+understand ko config):
+
+```bash
+crane digest cgr.dev/chainguard/static:latest
+```
+
+Only platforms the base image actually provides can be built; ko silently skips the rest.
+
+### 9. Verify the release pipeline still lints
 
 The release workflows are security-relevant, so lint them after any change:
 
 ```bash
 actionlint
 ```
+
+## Tests
+
+The unit tests and fuzz targets are behind the `unit` build tag. A plain `go test ./...`
+reports "no test files" and runs nothing, which is easy to mistake for a passing run.
+Always go through the make targets:
+
+```bash
+make go-test               # go test -tags unit -race ./...
+make go-fuzz FUZZTIME=60s  # native Go fuzzing of the HTTP router
+```
+
+The same tag is set in [prek.toml](prek.toml) for the `go-test-repo-mod` hook and in
+[.github/workflows/tests.yml](.github/workflows/tests.yml). If you add a test file, keep the
+`//go:build unit` tag on it or it will not run in either place.
 
 ## Release provenance (SLSA Build L3)
 
