@@ -2,7 +2,7 @@
 
 This guide describes how to deploy Dependency-Track with the sbom-operator in a local kind cluster.
 
-![sbom-operator](../../../assets/sbom-operator/sbom-operator.png)
+![sbom-operator](../../../../assets/sbom-operator/sbom-operator.png)
 
 ## Prerequisites
 
@@ -103,7 +103,7 @@ The sbom-operator will now create SBOMs for the pods and upload them to Dependen
 
 Verify that the SBOMs are uploaded to Dependency-Track and the vulnerabilities are scanned: [http://0.0.0.0:30081](http://0.0.0.0:30081).
 
-![Dependency-Track](../../../assets/sbom-operator/dtrack.png)
+![Dependency-Track](../../../../assets/sbom-operator/dtrack.png)
 
 You could also upload SBOMs manually to the api [http://0.0.0.0:30080](http://0.0.0.0:30080) (see [manual sbom import](../manual-sbom-import.md))
 

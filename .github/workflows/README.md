@@ -64,6 +64,31 @@ Action: https://github.com/google/osv-scanner-action
 
 ## Release
 
+Pushing a `v*` tag starts the whole pipeline:
+
+```mermaid
+flowchart TD
+    tag(["git push origin v1.2.3"]) --> rel
+
+    rel["<b>release.yml</b><br/><i>caller</i><br/>decides THAT a release happens<br/>passes no build inputs"]
+
+    subgraph builders["trusted builders · reusable workflows · decide HOW it is built"]
+        bb["<b>build-binaries.yml</b><br/>goreleaser → archives, SBOMs<br/>checksums.txt"]
+        bi["<b>build-image.yml</b><br/>ko → multi-arch image<br/>cyclonedx-gomod → SBOM"]
+    end
+
+    rel --> bb
+    rel --> bi
+
+    bb -->|"attest-build-provenance<br/>subject-checksums"| gh[("GitHub Release<br/>archives · SBOMs · checksums<br/>+ provenance")]
+    bi -->|"attest-build-provenance<br/>push-to-registry"| ghcr[("ghcr.io<br/>image + provenance<br/>+ signature + SBOM")]
+
+    ghcr --> ver["<b>verification</b> job<br/>gh attestation verify<br/>cue vet policy.cue"]
+    gh -.->|"on release published"| relver["<b>release-verification.yml</b><br/>verifies every file<br/>in checksums.txt"]
+
+    style builders fill:#f6f8fa,stroke:#57606a
+```
+
 The release workflow includes multiple jobs to create a release of the project. Following jobs are implemented:
 
 | Job                                  | GitHub Action                                                                              | Description                                                                                                          |
@@ -71,19 +96,47 @@ The release workflow includes multiple jobs to create a release of the project. 
 | `binaries`                           | [build-binaries.yml](./build-binaries.yml)                                                 | Trusted builder: creates the go archives & checksums file and signs their provenance                                 |
 | `image`                              | [build-image.yml](./build-image.yml)                                                       | Trusted builder: creates the container images & SBOMs, signs the images and their provenance                         |
 | `verification`                       | -                                                                                          | Verifying the provenance, signature and SBOM of the container image                                                  |
-| `goreportcard`                       | -                                                                                          | Refreshes the Go Report Card (best effort, cannot fail the release)                                                  |
 | `verification-with-gh-attestation`   | -                                                                                          | Verifying the provenance for all binary releases (only possible if release is published)                             |
 
 ### Trusted builders and SLSA Build Level 3
 
 SLSA Build Level 3 requires that provenance is produced by a build platform whose instructions the caller cannot influence. GitHub Artifact Attestations give Level 2 out of the box; Level 3 additionally requires that the build runs in a reusable workflow that isolates it from the calling workflow.
 
+```mermaid
+flowchart TB
+    subgraph l2["❌ Build L2 — attestation alone"]
+        direction LR
+        a2["<b>release.yml</b><br/>builds <i>and</i> signs"]
+        n2["anyone who can edit release.yml<br/>controls the provenance"]
+        a2 -.-> n2
+    end
+
+    subgraph l3["✅ Build L3 — trusted builder · this repo"]
+        direction LR
+        a3["<b>release.yml</b><br/><i>calls, passes nothing</i>"] --> b3["<b>build-image.yml</b><br/>builds <i>and</i> signs"]
+        n3["the signer is a workflow the<br/>caller cannot influence"]
+        b3 -.-> n3
+    end
+
+    l2 ~~~ l3
+
+    style l2 fill:#fff5f5,stroke:#cf222e
+    style l3 fill:#f0fff4,stroke:#1a7f37
+```
+
 This repository therefore splits the release into a *caller* and two *trusted builders*:
 
 - [release.yml](./release.yml) decides **that** a release happens. It passes no build inputs.
 - [build-binaries.yml](./build-binaries.yml) and [build-image.yml](./build-image.yml) decide **how** it is built, and sign their own provenance.
 
-The consequence for verification is visible in the provenance itself. `runDetails.builder.id` names the reusable workflow that signed (the trusted builder), while `buildDefinition.externalParameters.workflow.path` names the caller. Verification pins the former, so provenance signed by any other workflow in the repository is rejected.
+The consequence for verification is visible in the provenance itself — the two fields come from different OIDC claims:
+
+| Provenance field | OIDC claim | Names |
+| :--- | :--- | :--- |
+| `runDetails.builder.id` | `job_workflow_ref` | the **trusted builder** that signed |
+| `buildDefinition.externalParameters.workflow.path` | `workflow_ref` | the **caller** |
+
+Verification pins the former, so provenance signed by any other workflow in the repository is rejected — including `release.yml` itself.
 
 The identity is pinned with `gh attestation verify --cert-identity-regex` rather than the friendlier `--signer-workflow`, because the latter matches the signer identity by prefix and does not pin the tag. See the note in [SECURITY.md](./../../SECURITY.md#verify-provenance-of-release-artifacts).
 

@@ -6,4 +6,4 @@ The deployment of the sbom-operator is described in the [deployment](deployment/
 
 An overview of the components is shown in the following picture:
 
-![sbom-operator](../../assets/sbom-operator/sbom-operator.png)
+![sbom-operator](../../../assets/sbom-operator/sbom-operator.png)
