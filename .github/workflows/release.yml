@@ -127,19 +127,3 @@ jobs:
             --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/build-image.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
             --policy policy-sbom.cue \
             "$IMAGE@$DIGEST"
-
-  # Best effort: goreportcard is a third-party service, so a refresh failure
-  # must not fail the release.
-  goreportcard:
-    runs-on: ubuntu-latest
-    permissions: {}
-    continue-on-error: true
-    steps:
-      - name: Refresh Go Report Card
-        env:
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          curl -sS --fail-with-body -X POST \
-            -F "repo=github.com/${REPOSITORY}" \
-            https://goreportcard.com/checks
