@@ -11,13 +11,12 @@ concurrency:
 permissions: {}
 
 jobs:
-  verification-with-slsa-verifier:
+  verification-with-gh-attestation:
     runs-on: ubuntu-latest
-    permissions: read-all
+    permissions:
+      contents: read
+      attestations: read # read the provenance attestation of the release assets
     steps:
-      - name: Install the verifier
-        uses: slsa-framework/slsa-verifier/actions/installer@ea584f4502babc6f60d9bc799dbbb13c1caa9ee6 # v2.7.1
-
       - name: Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
@@ -28,24 +27,37 @@ jobs:
           set -euo pipefail
           echo "Downloading release assets (tag: $GITHUB_REF_NAME)"
           gh -R "$GITHUB_REPOSITORY" release download "$GITHUB_REF_NAME"
-      # verify each artifact in checksum.txt file with the provenance
-      - name: Verify assets
+
+      # The checksums file is the subject of the provenance attestation, so its
+      # own signature is verified first.
+      - name: Verify checksums file
         run: |
           set -euo pipefail
-
           echo "Verifying checksums.txt"
           cosign verify-blob \
             --bundle checksums.txt.sigstore.json \
-            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/build-binaries.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             checksums.txt
 
-          checksums=$(cat checksums.txt)
+      # Every file listed in checksums.txt is a subject of the same attestation,
+      # so each one is verified against the trusted builder's provenance.
+      #
+      # --cert-identity-regex is used rather than --signer-workflow because the
+      # latter matches the signer identity by prefix only and does not pin the
+      # tag. See the comment in release.yml.
+      - name: Verify assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
           while read -r line; do
-            fn=$(echo $line | cut -d ' ' -f2)
+            fn=$(echo "$line" | awk '{print $2}')
             echo "Verifying $fn"
-            slsa-verifier verify-artifact --provenance-path "multiple.intoto.jsonl" \
-                                          --source-uri "github.com/$GITHUB_REPOSITORY" \
-                                          --source-tag "$GITHUB_REF_NAME" \
-                                          "$fn"
-          done <<<"$checksums"
+            gh attestation verify "$fn" \
+              --repo "$GITHUB_REPOSITORY" \
+              --cert-identity-regex '^https://github\.com/janfuhrer/podsalsa/\.github/workflows/build-binaries\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$' \
+              --source-ref "refs/tags/$GITHUB_REF_NAME" \
+              --deny-self-hosted-runners
+          done < checksums.txt

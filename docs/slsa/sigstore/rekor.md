@@ -27,7 +27,7 @@ rekor-cli search --sha $SHASUM
 
 This will return a list of UUIDs. You can then use the UUID to get the log entry from the transparency log and extract the certificate. Sigstore uses custom OIDs to store information about the certificate. The OIDs are defined in the [Fulcio docs](https://github.com/sigstore/fulcio/blob/main/docs/oid-info.md).
 
-For a container image there will be two entries, one for the image signature and one for the provenance file. You can tell them apart by the `Build Signer URI` field (certificate OID `1.3.6.1.4.1.57264.1.9`), which contains the name of the workflow that requested the signature. The workflow for the image signature is `release.yml` and for the provenance file signature is `generator_container_slsa3.yml`.
+For a container image there will be two entries, one for the image signature and one for the provenance. You can tell them apart by the `Build Signer URI` field (certificate OID `1.3.6.1.4.1.57264.1.9`), which contains the workflow that requested the signature. Both are signed from the trusted builder `build-image.yml`, so the field reads `.../.github/workflows/build-image.yml@refs/tags/<version>` for each — note that it names the reusable workflow that ran the build, not the `release.yml` that called it.
 
 You can check the log entries either by looking at the entry in the transparency log https://search.sigstore.dev/ or by using the `rekor-cli`:
 

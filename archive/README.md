@@ -2,6 +2,9 @@
 
 This directory contains not used files but that are kept for historical reasons.
 
+> [!WARNING]
+> The examples below use the [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator), which is no longer maintained, and match the SLSA v0.2 predicate it produced. The release pipeline now uses [GitHub Artifact Attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations) instead — see [the workflow documentation](../.github/workflows/README.md#trusted-builders-and-slsa-build-level-3). Do not copy these files into new projects.
+
 ## Policy controller (Kubernetes enforcement)
 
 This repository [contains an example](../docs/slsa/enforcement-kubernetes/) of how to enforce SLSA verification on the podsalsa image using [Kyverno](https://kyverno.io/).

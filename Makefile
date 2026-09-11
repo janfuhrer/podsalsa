@@ -42,6 +42,33 @@ KO = $(shell pwd)/bin/ko
 ko:
 	$(call go-install-tool,$(KO),github.com/google/ko@$(KO_VERSION))
 
+# https://github.com/CycloneDX/cyclonedx-gomod/releases
+CYCLONEDX_GOMOD_VERSION = v1.12.0
+CYCLONEDX_GOMOD = $(shell pwd)/bin/cyclonedx-gomod
+
+cyclonedx-gomod:
+	$(call go-install-tool,$(CYCLONEDX_GOMOD),github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@$(CYCLONEDX_GOMOD_VERSION))
+
+# https://github.com/cue-lang/cue/releases
+CUE_VERSION = v0.17.1
+CUE = $(shell pwd)/bin/cue
+
+cue:
+	$(call go-install-tool,$(CUE),cuelang.org/go/cmd/cue@$(CUE_VERSION))
+
+#########
+# SBOM  #
+#########
+
+SBOM_NAME ?= $(NAME)
+SBOM_MAIN ?= ./
+
+# ko only emits a minimal SBOM, so the container SBOM is generated with cyclonedx-gomod
+.PHONY: sbom-container
+sbom-container: cyclonedx-gomod
+	$(CYCLONEDX_GOMOD) app -licenses -json -output $(SBOM_NAME)-bom.cdx.json -main $(SBOM_MAIN)
+	@echo "SBOM written to $(SBOM_NAME)-bom.cdx.json"
+
 #########
 # Ko    #
 #########

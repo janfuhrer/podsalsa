@@ -2,6 +2,18 @@
 
 In this example we will use [Kyverno](https://kyverno.io/) to enforce SLSA verification in a Kubernetes cluster. This example uses a local kind cluster to demonstrate the enforcement.
 
+> [!IMPORTANT]
+> The [policy](./kyverno/clusterpolicy-slsa.yaml) describes the **SLSA v1** provenance that GitHub Artifact Attestations produce, and pins the trusted builder `build-image.yml`. It therefore only matches images from **v0.10.0 onwards**.
+>
+> Releases up to v0.9.x carry SLSA v0.2 provenance signed by the `slsa-github-generator` and will be rejected by this policy. The image in [deployment.yaml](./deployment.yaml) still points at such a release, so it needs to be updated to a v0.10.0+ digest before the "valid deployment" step below succeeds. Verifying those older images requires the v0.2 policy shown in [Legacy verification](../../../SECURITY.md#legacy-verification-v09x-and-earlier).
+>
+> Kyverno must also be able to read attestations stored as OCI 1.1 referrers, which requires `verifyImages[].type: SigstoreBundle` and therefore a current Kyverno release. With the default `type: Cosign` the attestation is not found at all.
+
+> [!NOTE]
+> Kyverno is not GitHub's own recommendation for enforcing artifact attestations — that is the [Sigstore Policy Controller](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/enforce-artifact-attestations), for which GitHub publishes a ready-made `ClusterImagePolicy` and trust root. An example policy-controller configuration is kept in [archive/policy-controller](../../../archive/policy-controller/). We use Kyverno here because it is not limited to SLSA verification, but either tool works.
+>
+> One Kyverno detail worth knowing when writing conditions: the variable context is rooted at the **predicate**, not at the in-toto statement. Write `{{ buildDefinition.buildType }}`, not `{{ predicate.buildDefinition.buildType }}`.
+
 ## Install local kind cluster
 
 Install [kind](https://kind.sigs.k8s.io/) and create a local cluster.

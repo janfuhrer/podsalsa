@@ -1,43 +1,36 @@
 # Prerequisites verification
 
-## SLSA-Verifier
+## GitHub CLI
 
-To verify the SLSA provenance, you need the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier) binary. You can install it via Homebrew or download it from GitHub.
+The provenance of podsalsa releases is generated with [GitHub Artifact Attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations) and verified with the [GitHub CLI](https://cli.github.com/) (`gh attestation verify`). Version 2.49.0 or newer is required.
 
-Download with Hombrew:
+Download with Homebrew:
+
+```bash
+brew install gh
+```
+
+For other platforms see the [installation instructions](https://github.com/cli/cli#installation). Authenticate once with `gh auth login`, which is also what lets `gh` pull attestations for images from a private registry.
+
+## CUE
+
+[CUE](https://cuelang.org/) is used to validate the *contents* of the provenance against [policy.cue](../../policy.cue), which is the complement to the signer-identity check that `gh attestation verify` performs.
+
+```bash
+brew install cue
+```
+
+## SLSA-Verifier (legacy releases only)
+
+Releases up to and including **v0.9.x** were built with the now-deprecated [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) and are verified with the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier) instead of `gh`. You only need this tool to verify those older releases — see [Legacy verification](../../SECURITY.md#legacy-verification-v09x-and-earlier).
 
 ```bash
 brew install slsa-verifier
 ```
 
-Download binary from GitHub and verify checksum:
-
-```bash
-# get the latest release
-export VERSION=$(curl -s "https://api.github.com/repos/slsa-framework/slsa-verifier/releases/latest" | jq -r '.tag_name')
-export ARCH=darwin-arm64 # linux-amd64
-
-# download binary and shasum file
-curl -L -O https://github.com/slsa-framework/slsa-verifier/releases/download/$VERSION/slsa-verifier-$ARCH
-curl -L -O https://raw.githubusercontent.com/slsa-framework/slsa-verifier/main/SHA256SUM.md
-
-# simplify shasum file since it has all hashes for all versions in it
-sed -n "/### \[${VERSION}\]/,/^### /p" SHA256SUM.md | grep -vE '^###|^$' > sha256sum_filtered
-
-# shasum check on macOS
-shasum -a 256 -c --ignore-missing --strict sha256sum_filtered
-
-# shasum check on linux
-sha256sum -c --strict --ignore-missing sha256sum_filtered
-
-# make binary executable and move it to a location in your $PATH
-chmod +x slsa-verifier-$ARCH
-sudo mv slsa-verifier-$ARCH /usr/local/bin/slsa-verifier
-```
-
 ## Cosign
 
-As an alternative to the SLSA-Verifier, you can use the [Cosign](https://github.com/sigstore/cosign) CLI to verify the docker images and the checksum file.
+The [Cosign](https://github.com/sigstore/cosign) CLI verifies the image signature, the SBOM attestation and the checksum file.
 
 Install Cosign via Homebrew or have a look at the [installation instructions](https://docs.sigstore.dev/system_config/installation/).
 
@@ -67,6 +60,8 @@ curl -sL "https://github.com/google/go-containerregistry/releases/download/$VERS
 curl -sL https://github.com/google/go-containerregistry/releases/download/$VERSION/multiple.intoto.jsonl > provenance.intoto.jsonl
 
 # verify SLSA provenance
+# note: go-containerregistry still publishes slsa-github-generator provenance,
+# so this verification uses the slsa-verifier rather than the GitHub CLI
 slsa-verifier verify-artifact \
     --provenance-path provenance.intoto.jsonl \
     --source-uri github.com/google/go-containerregistry \

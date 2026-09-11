@@ -60,7 +60,10 @@ signs:
     signature: "${artifact}.sigstore.json"
 
 release:
-  # allow pre-release versions (e.g. by tagging with v1.0.0-rc0)
+  # allow pre-release versions (e.g. by tagging with v1.0.0-rc.1)
+  # note: the "-rc.N" form with a dot is required. The certificate identity
+  # patterns used for verification match "(-rc\.[0-9]+)?", so a tag like
+  # "v1.0.0-rc0" builds fine but fails provenance verification.
   prerelease: auto
   draft: true
   footer: |
