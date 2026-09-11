@@ -23,15 +23,15 @@ go mod tidy
 Edit [go.mod](go.mod) and bump the `go` directive:
 
 ```
-go 1.26.2
+go 1.27.1
 ```
 
 ### 3. Update hardcoded GOTOOLCHAIN in workflows
 
 Two workflows hardcode the toolchain version and must be updated manually:
 
-- [.github/workflows/codeql.yml](.github/workflows/codeql.yml) — `GOTOOLCHAIN: "go1.26.2"`
-- [.github/workflows/gosec.yml](.github/workflows/gosec.yml) — `GOTOOLCHAIN: "go1.26.2"`
+- [.github/workflows/codeql.yml](.github/workflows/codeql.yml) — `GOTOOLCHAIN: "go1.27.1"`
+- [.github/workflows/gosec.yml](.github/workflows/gosec.yml) — `GOTOOLCHAIN: "go1.27.1"`
 
 The following workflows use `go-version-file: 'go.mod'` and pick up the version automatically — no changes needed:
 
@@ -43,7 +43,7 @@ The following workflows use `go-version-file: 'go.mod'` and pick up the version 
 [Makefile](Makefile) line 15 has a hardcoded `-compat` flag:
 
 ```makefile
-go mod tidy -compat=1.26
+go mod tidy -compat=1.27
 ```
 
 Update this when the `major.minor` version changes (not needed for patch-only bumps).
@@ -53,7 +53,7 @@ Update this when the `major.minor` version changes (not needed for patch-only bu
 [prek.toml](prek.toml) pins the `rev` of each hook repository. Update all revisions to their latest tags:
 
 ```bash
-prek auto-update
+prek update
 ```
 
 This updates the `rev` fields for all four repos in [prek.toml](prek.toml):
@@ -74,7 +74,7 @@ go test ./...
 [Makefile](Makefile) hardcodes the ko version:
 
 ```makefile
-KO_VERSION  = v0.18.1
+KO_VERSION  = v0.19.1
 ```
 
 Check the latest release and update the version:
