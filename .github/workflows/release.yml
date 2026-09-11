@@ -12,124 +12,44 @@ concurrency:
 permissions: {}
 
 jobs:
-  goreleaser:
-    outputs:
-      hashes: ${{ steps.binary.outputs.hashes }}
+  # The builds run in dedicated reusable workflows that also sign their own
+  # provenance. This workflow only decides *that* they run, never *how*, which
+  # is what keeps the provenance at SLSA Build L3.
+  binaries:
+    permissions:
+      contents: write # create the draft release and upload the assets
+      id-token: write # mint the OIDC token used for keyless signing
+      attestations: write # persist the provenance attestation
+    uses: ./.github/workflows/build-binaries.yml
+
+  image:
+    permissions:
+      contents: read
+      packages: write # push the image and the provenance attestation to ghcr.io
+      id-token: write # mint the OIDC token used for keyless signing
+      attestations: write # persist the provenance attestation
+      artifact-metadata: write # create the storage record for the pushed attestation
+    uses: ./.github/workflows/build-image.yml
+
+  verification:
+    needs: [image]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write # sign archives with cosign
+      contents: read
+      packages: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Update goreportcard
-        uses: creekorful/goreportcard-action@1f35ced8cdac2cba28c9a2f2288a16aacfd507f9 # v1.0
+
       - name: Setup go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: 'go.mod'
           check-latest: true
           cache: false
-      - name: Install Syft
-        uses: anchore/sbom-action/download-syft@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
-      - name: Run GoReleaser
-        id: goreleaser
-        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
-        with:
-          version: '~> v2'
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Generate binary hashes
-        id: binary
-        env:
-          ARTIFACTS: "${{ steps.goreleaser.outputs.artifacts }}"
-        run: |
-          set -euo pipefail
-          checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
-          echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
-
-  ko-publish:
-    outputs:
-      digest: ${{ steps.release-podsalsa.outputs.digest }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-      id-token: write # sign archives with cosign
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Setup go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: 'go.mod'
-          check-latest: true
-          cache: false
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
-      - name: Publish podsalsa
-        id: release-podsalsa
-        uses: ./.github/actions/publish-image
-        with:
-          makefile-target: ko-publish-podsalsa
-          registry: ghcr.io
-          registry-username: ${{ github.actor }}
-          registry-password: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository_owner }}
-          version: ${{ github.ref_name }}
-          sign-image: true
-          sbom-name: podsalsa
-          main-path: ./
-
-  binary-provenance:
-    needs: [goreleaser]
-    permissions:
-      actions: read # To read the workflow path.
-      id-token: write # To sign the provenance (fetch an OIDC token from GitHub)
-      contents: write # To add assets to a release.
-    # MUST be referenced by tag (see https://github.com/slsa-framework/slsa-github-generator/?tab=readme-ov-file#referencing-slsa-builders-and-generators)
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
-    with:
-      base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
-      upload-assets: true # upload to a new release
-      draft-release: true
-
-  image-provenance:
-    needs: [ko-publish]
-    permissions:
-      actions: read
-      id-token: write
-      packages: write
-    # MUST be referenced by tag (see https://github.com/slsa-framework/slsa-github-generator/?tab=readme-ov-file#referencing-slsa-builders-and-generators)
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
-    with:
-      image: ghcr.io/${{ github.repository_owner }}/podsalsa
-      digest: ${{ needs.ko-publish.outputs.digest }}
-      registry-username: ${{ github.actor }}
-      provenance-registry-username: ${{ github.actor }}
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
-      provenance-registry-password: ${{ secrets.GITHUB_TOKEN }}
-
-  verification-with-cosign:
-    needs: [ko-publish, image-provenance]
-    runs-on: ubuntu-latest
-    permissions: read-all
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
 
       - name: Login
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
@@ -141,44 +61,85 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
+      # Proves the provenance was signed by the trusted builder rather than by
+      # any workflow that merely happens to live in this repository.
+      #
+      # --cert-identity-regex is used instead of the more readable
+      # --signer-workflow because the latter matches the signer identity by
+      # prefix only: it would also accept "build-image.yml.bak" and it does not
+      # pin the tag. The anchored regex below pins both. Note that the two flags
+      # cannot be combined — --cert-identity-regex takes precedence and
+      # --signer-workflow would be silently ignored.
       - name: Verify provenance of image
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
-          DIGEST: ${{ needs.ko-publish.outputs.digest }}
+          DIGEST: ${{ needs.image.outputs.digest }}
         run: |
           set -euo pipefail
-          cosign verify-attestation \
-            --type slsaprovenance \
-            --new-bundle-format=false \
-            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-            --certificate-identity-regexp '^https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+$' \
-            --policy policy.cue \
-            $IMAGE@$DIGEST
+          gh attestation verify "oci://${IMAGE}@${DIGEST}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --cert-identity-regex '^https://github\.com/janfuhrer/podsalsa/\.github/workflows/build-image\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$' \
+            --source-ref "${GITHUB_REF}" \
+            --deny-self-hosted-runners \
+            --bundle-from-oci
+
+      # Complements the signature check above by asserting what the provenance
+      # actually says about the build.
+      - name: Verify provenance against CUE policy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
+          DIGEST: ${{ needs.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          make cue
+          gh attestation verify "oci://${IMAGE}@${DIGEST}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --cert-identity-regex '^https://github\.com/janfuhrer/podsalsa/\.github/workflows/build-image\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$' \
+            --bundle-from-oci \
+            --format json --jq '.[0].verificationResult.statement' > statement.json
+          ./bin/cue vet policy.cue statement.json
+          echo "Provenance matches policy.cue"
 
       - name: Verify signature of image
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
-          DIGEST: ${{ needs.ko-publish.outputs.digest }}
-          REPOSITORY: ${{ github.repository_owner }}
+          DIGEST: ${{ needs.image.outputs.digest }}
         run: |
           set -euo pipefail
           cosign verify \
             --new-bundle-format \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
-            $IMAGE@$DIGEST
+            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/build-image.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+            "$IMAGE@$DIGEST"
 
       - name: Verify sbom of image
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/podsalsa
-          DIGEST: ${{ needs.ko-publish.outputs.digest }}
-          REPOSITORY: ${{ github.repository_owner }}
+          DIGEST: ${{ needs.image.outputs.digest }}
         run: |
           set -euo pipefail
           cosign verify-attestation \
             --new-bundle-format \
             --type cyclonedx \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+            --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/build-image.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
             --policy policy-sbom.cue \
-            $IMAGE@$DIGEST
+            "$IMAGE@$DIGEST"
+
+  # Best effort: goreportcard is a third-party service, so a refresh failure
+  # must not fail the release.
+  goreportcard:
+    runs-on: ubuntu-latest
+    permissions: {}
+    continue-on-error: true
+    steps:
+      - name: Refresh Go Report Card
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          curl -sS --fail-with-body -X POST \
+            -F "repo=github.com/${REPOSITORY}" \
+            https://goreportcard.com/checks

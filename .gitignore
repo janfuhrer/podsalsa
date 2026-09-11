@@ -33,5 +33,8 @@ out/
 # ko sbom directory
 sbom/
 
+# generated cyclonedx sbom
+*-bom.cdx.json
+
 # local binary
 podsalsa

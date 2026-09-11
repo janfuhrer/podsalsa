@@ -14,6 +14,8 @@ Following workflows are implemented in the repository.
 | [gosec.yml](./gosec.yml)                               | `analyze`                       | push/pr on `*`                                                | -            | Inspects source code for security problems in Go code                                           |
 | [osv-scan.yml](./osv-scan.yml)                         | `analyze`                       | push/pr to `main`, cron: `30 13 * * 1`                        | yes          | Scanning for vulnerabilites in dependencies                                                     |
 | [release.yml](./release.yml)                           | see [release chapter](#release) | push tag `v*`                                                 | -            | Create release with go binaries and docker container                                            |
+| [build-binaries.yml](./build-binaries.yml)             | `build`                         | called by `release.yml`                                       | -            | Trusted builder for the go archives (reusable workflow)                                         |
+| [build-image.yml](./build-image.yml)                   | `build`                         | called by `release.yml`                                       | -            | Trusted builder for the container images (reusable workflow)                                    |
 | [release-verification.yml](./release-verification.yml) | see [release chapter](#release) | release published                                             | -            | Verify assets of a new release                                                                  |
 | [scorecard.yml](./scorecard.yml)                       | `analyze`                       | push to `main`, cron: `00 14 * * 1`, change branch protection | yes          | Create OpenSSF analysis and create project score                                                |
 
@@ -64,23 +66,35 @@ Action: https://github.com/google/osv-scanner-action
 
 The release workflow includes multiple jobs to create a release of the project. Following jobs are implemented:
 
-| Job                               | GitHub Action                                                                                                                    | Description                                                                                                          |
-| :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
-| `goreleaser`                      | [goreleaser-action](https://github.com/goreleaser/goreleaser-action)                                                             | Creates the go archives & checksums file                                                                             |
-| `ko-publish`                      | [publish-image action](../actions/publish-image/action.yaml)                                                                     | Create the container images & SBOMs, sign images and upload to the GitHub registry                                   |
-| `binary-provenance`               | [generator_generic_slsa3](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md) | Generate provenance for all release artifacts (go archives & SBOMs)                                                  |
-| `image-provenance`                | [generator_container_slsa3](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/container)       | Generates provenance for the container images                                                                        |
-| `verification-with-cosign`        | -                                                                                                                                | Verifying the cryptographic signatures on provenance for the container image                                         |
-| `verification-with-slsa-verifier` | -                                                                                                                                | Verifying the cryptographic signatures on provenance for all binary releases (only possible if release is published) |
+| Job                                  | GitHub Action                                                                              | Description                                                                                                          |
+| :----------------------------------- | :----------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
+| `binaries`                           | [build-binaries.yml](./build-binaries.yml)                                                 | Trusted builder: creates the go archives & checksums file and signs their provenance                                 |
+| `image`                              | [build-image.yml](./build-image.yml)                                                       | Trusted builder: creates the container images & SBOMs, signs the images and their provenance                         |
+| `verification`                       | -                                                                                          | Verifying the provenance, signature and SBOM of the container image                                                  |
+| `goreportcard`                       | -                                                                                          | Refreshes the Go Report Card (best effort, cannot fail the release)                                                  |
+| `verification-with-gh-attestation`   | -                                                                                          | Verifying the provenance for all binary releases (only possible if release is published)                             |
+
+### Trusted builders and SLSA Build Level 3
+
+SLSA Build Level 3 requires that provenance is produced by a build platform whose instructions the caller cannot influence. GitHub Artifact Attestations give Level 2 out of the box; Level 3 additionally requires that the build runs in a reusable workflow that isolates it from the calling workflow.
+
+This repository therefore splits the release into a *caller* and two *trusted builders*:
+
+- [release.yml](./release.yml) decides **that** a release happens. It passes no build inputs.
+- [build-binaries.yml](./build-binaries.yml) and [build-image.yml](./build-image.yml) decide **how** it is built, and sign their own provenance.
+
+The consequence for verification is visible in the provenance itself. `runDetails.builder.id` names the reusable workflow that signed (the trusted builder), while `buildDefinition.externalParameters.workflow.path` names the caller. Verification pins the former, so provenance signed by any other workflow in the repository is rejected.
+
+The identity is pinned with `gh attestation verify --cert-identity-regex` rather than the friendlier `--signer-workflow`, because the latter matches the signer identity by prefix and does not pin the tag. See the note in [SECURITY.md](./../../SECURITY.md#verify-provenance-of-release-artifacts).
 
 ### Go Release
 
 This repository uses [goreleaser](https://goreleaser.com/) to create all the release artifacts. GoReleaser can build and release Go binaries for multiple platforms, create archives/container images/SBOMs and more. All the configuration for the release is stored in the file [.goreleaser.yml](./../../.goreleaser.yml).
-For all the release artifacts (`*.tar.gz`, `*.zip`, `*.sbom.json`), provenance is generated using the [SLSA Generic Generator](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md). The provenance file is uploaded to the release assets and can be verified using the `slsa-verifier` tool (see [Release Verification](./../../SECURITY.md#release-verification)).
+Provenance is generated with [actions/attest-build-provenance](https://github.com/actions/attest-build-provenance) over the `checksums.txt` file. Because that file lists every released archive and SBOM, a single attestation covers all release artifacts (`*.tar.gz`, `*.zip`, `*.sbom.json`), each of which can be verified individually with `gh attestation verify` (see [Release Verification](./../../SECURITY.md#release-verification)).
 
 ### Container Release
 
-The multi-arch container images are built using [ko](https://ko.build/) in the [publish-image](../actions/publish-image/action.yaml) action and uploaded to the GitHub Container Registry. The docker image provenance is generated using the [SLSA Container Generator](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/container) and uploaded to the registry. The provenance can be verified using the `slsa-verifier` or `cosign` tool (see [Release Verification](./../../SECURITY.md#release-verification)).
+The multi-arch container images are built using [ko](https://ko.build/) in the [publish-image](../actions/publish-image/action.yaml) action and uploaded to the GitHub Container Registry. The image provenance is generated with [actions/attest-build-provenance](https://github.com/actions/attest-build-provenance) and pushed to the registry as an OCI 1.1 referrer, so it travels alongside the image. The provenance can be verified using the `gh` or `cosign` tool (see [Release Verification](./../../SECURITY.md#release-verification)).
 
 **Credits**: The [publish-image](../actions/publish-image/action.yaml) action is from [Kyverno](https://github.com/kyverno/kyverno).
 
@@ -88,7 +102,7 @@ The multi-arch container images are built using [ko](https://ko.build/) in the [
 
 [ko](https://ko.build/features/sboms/) only generates a "minimal" SBOM for the container images (see [comment in GitHub Issue](https://github.com/ko-build/ko/pull/587#issuecomment-1034926085)) and lacks some information (e.g. Licensing information or the `version` field which is set to `devel` instead of the actual version).
 
-To generate a complete SBOM for the container images, the [go-gomod-generate-sbom](https://github.com/CycloneDX/gh-gomod-generate-sbom) action is used instead.
+To generate a complete SBOM for the container images, the [cyclonedx-gomod](https://github.com/CycloneDX/cyclonedx-gomod) CLI is used instead, pinned in the [Makefile](./../../Makefile) and invoked through the `sbom-container` target.
 
 The SBOMs of the container images are uploaded to a separate package registry (see [SBOM](./../../SECURITY.md#sbom) for more information).
 

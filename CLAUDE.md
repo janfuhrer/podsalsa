@@ -69,18 +69,49 @@ go build ./...
 go test ./...
 ```
 
-### 7. Update ko version
+### 7. Update pinned tool versions
 
-[Makefile](Makefile) hardcodes the ko version:
+[Makefile](Makefile) hardcodes the version of every Go tool it installs:
 
 ```makefile
-KO_VERSION  = v0.19.1
+KO_VERSION              = v0.19.1
+CYCLONEDX_GOMOD_VERSION = v1.12.0
+CUE_VERSION             = v0.17.1
 ```
 
-Check the latest release and update the version:
+Check the latest releases and update the versions:
 
 ```bash
 gh release view --repo google/ko --json tagName -q '.tagName'
+gh release view --repo CycloneDX/cyclonedx-gomod --json tagName -q '.tagName'
+gh release view --repo cue-lang/cue --json tagName -q '.tagName'
 ```
 
-Then update `KO_VERSION` in [Makefile](Makefile) accordingly.
+### 8. Verify the release pipeline still lints
+
+The release workflows are security-relevant, so lint them after any change:
+
+```bash
+actionlint
+```
+
+## Release provenance (SLSA Build L3)
+
+The release pipeline is split into a caller and two trusted builders. Do not collapse
+them back into a single workflow — the separation is what makes the provenance
+SLSA Build Level 3.
+
+- [.github/workflows/release.yml](.github/workflows/release.yml) only triggers the builds and passes no build inputs.
+- [.github/workflows/build-binaries.yml](.github/workflows/build-binaries.yml) and [.github/workflows/build-image.yml](.github/workflows/build-image.yml) run the builds and sign their own provenance.
+
+Consequences to keep in mind when editing:
+
+- The signing identity in every keyless signature is the **trusted builder**, not `release.yml`.
+  Renaming either build workflow changes that identity and therefore invalidates the
+  `--certificate-identity-regexp` values in [SECURITY.md](SECURITY.md) and
+  [.github/workflows/release-verification.yml](.github/workflows/release-verification.yml), the
+  `--signer-workflow` values, the `builder.id` regex in [policy.cue](policy.cue), and the keyless
+  subject in [the Kyverno policy](docs/slsa/enforcement-kubernetes/kyverno/clusterpolicy-slsa.yaml).
+- [policy.cue](policy.cue) describes the SLSA **v1** predicate emitted by
+  `actions/attest-build-provenance`. Verify changes to it against a real statement with
+  `cue vet policy.cue statement.json`.
