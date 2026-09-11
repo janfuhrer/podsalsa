@@ -1,0 +1,102 @@
+# Kyverno ImageValidatingPolicy (policies.kyverno.io/v1) — the current API.
+#
+# The older kyverno.io/v1 ClusterPolicy is deprecated as of Kyverno 1.19 and will
+# be removed. See clusterpolicy-slsa.yaml for the equivalent legacy policy.
+apiVersion: policies.kyverno.io/v1
+kind: ImageValidatingPolicy
+metadata:
+  name: verify-slsa-provenance-keyless
+  annotations:
+    policies.kyverno.io/title: Verify SLSA provenance (keyless)
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/minversion: 1.19.0
+    policies.kyverno.io/description: >-
+      Verifies that podsalsa images carry SLSA v1 build provenance signed by the
+      trusted builder (build-image.yml), and that the provenance describes a
+      release built from a version tag on a GitHub-hosted runner.
+spec:
+  # Deny admission when a validation fails
+  validationActions: [Deny]
+  webhookConfiguration:
+    timeoutSeconds: 30
+  # Verification reaches out to the registry and Rekor, so keep it to admission
+  evaluation:
+    admission:
+      enabled: true
+    background:
+      enabled: false
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["pods"]
+  matchImageReferences:
+  - glob: "ghcr.io/janfuhrer/podsalsa*"
+  attestors:
+  # The signer is the reusable workflow that built the image, not the release
+  # workflow that called it — that separation is what makes the provenance
+  # SLSA Build L3. The expression is anchored at both ends.
+  - name: trustedBuilder
+    cosign:
+      keyless:
+        identities:
+        - issuer: "https://token.actions.githubusercontent.com"
+          subjectRegExp: '^https://github\.com/janfuhrer/podsalsa/\.github/workflows/build-image\.yml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$'
+      ctlog:
+        url: https://rekor.sigstore.dev
+  attestations:
+  # SLSA v1 build provenance, as produced by GitHub Artifact Attestations
+  - name: slsaProvenance
+    intoto:
+      type: https://slsa.dev/provenance/v1
+  validations:
+  # 1. the provenance must be signed by the trusted builder
+  - expression: >-
+      images.containers.map(image,
+        verifyAttestationSignatures(image, attestations.slsaProvenance, [attestors.trustedBuilder])
+      ).all(e, e > 0)
+    message: >-
+      SLSA provenance is not signed by the trusted builder
+      (.github/workflows/build-image.yml at a version tag).
+  # 2. the provenance contents must describe a build we trust. Note that
+  #    extractPayload returns the in-toto STATEMENT, so fields are addressed
+  #    below ".predicate" — unlike ClusterPolicy conditions, which are rooted
+  #    at the predicate itself.
+  - expression: >-
+      images.containers.map(image,
+        extractPayload(image, attestations.slsaProvenance).predicate.buildDefinition.buildType
+          == 'https://actions.github.io/buildtypes/workflow/v1'
+      ).all(e, e)
+    message: Provenance was not produced by a GitHub Actions workflow run.
+  - expression: >-
+      images.containers.map(image,
+        extractPayload(image, attestations.slsaProvenance).predicate.buildDefinition.externalParameters.workflow.repository
+          == 'https://github.com/janfuhrer/podsalsa'
+      ).all(e, e)
+    message: Image was not built from the janfuhrer/podsalsa repository.
+  - expression: >-
+      images.containers.map(image,
+        extractPayload(image, attestations.slsaProvenance).predicate.buildDefinition.externalParameters.workflow.ref
+          .matches('^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+(-rc\\.[0-9]+)?$')
+      ).all(e, e)
+    message: Image was not built from a version tag.
+  - expression: >-
+      images.containers.map(image,
+        extractPayload(image, attestations.slsaProvenance).predicate.buildDefinition.externalParameters.workflow.path
+          == '.github/workflows/release.yml'
+      ).all(e, e)
+    message: Image was not released through .github/workflows/release.yml.
+  - expression: >-
+      images.containers.map(image,
+        extractPayload(image, attestations.slsaProvenance).predicate.buildDefinition.internalParameters.github.runner_environment
+          == 'github-hosted'
+      ).all(e, e)
+    message: Image was not built on a GitHub-hosted runner.
+  - expression: >-
+      images.containers.map(image,
+        extractPayload(image, attestations.slsaProvenance).predicate.runDetails.builder.id
+          .matches('^https://github\\.com/janfuhrer/podsalsa/\\.github/workflows/build-image\\.yml@refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+(-rc\\.[0-9]+)?$')
+      ).all(e, e)
+    message: Provenance builder.id is not the trusted builder.

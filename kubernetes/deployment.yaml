@@ -19,7 +19,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-      - image: ghcr.io/janfuhrer/podsalsa:v0.9.1@sha256:348cf40f16e41cbd027d79f50982fe90b34675f7b89417e6cffff555b309a679
+      - image: ghcr.io/janfuhrer/podsalsa:v0.10.0@sha256:65606217333fd07b7ae7964569fb2adc4c9e91ffdd935c66682319d0bd83dc1c
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 5
