@@ -1,8 +1,9 @@
 NAME       ?= podsalsa
 BUILD_DATE ?= $(shell date -Iseconds)
 VERSION    ?= $(shell git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)-local
-# Adds "-dirty" suffix if there are uncommitted changes in the git repository
-COMMIT_REF ?= $(shell git describe --dirty --always)
+# Full commit SHA, matching goreleaser's "{{ .Commit }}" so binaries and container
+# images report the same value. Adds a "-dirty" suffix for uncommitted changes.
+COMMIT_REF ?= $(shell git rev-parse HEAD)$(shell git diff --quiet HEAD 2>/dev/null || echo "-dirty")
 GOOS       ?= $(shell go env GOOS)
 GOARCH     ?= $(shell go env GOARCH)
 
@@ -14,6 +15,19 @@ GOARCH     ?= $(shell go env GOARCH)
 go-tidy:
 	go mod tidy -compat=1.27
 	@echo "Go modules tidied."
+
+.PHONY: go-test
+go-test:
+	go test -tags unit -race ./...
+	@echo "Go tests completed."
+
+# Fuzz targets are behind the same "unit" build tag as the rest of the tests.
+FUZZTIME ?= 60s
+FUZZ     ?= FuzzRouter
+.PHONY: go-fuzz
+go-fuzz:
+	go test -tags unit -run '^$$' -fuzz $(FUZZ) -fuzztime $(FUZZTIME) ./pkg/http/
+	@echo "Go fuzzing completed."
 
 .PHONY: go-lint
 go-lint:
