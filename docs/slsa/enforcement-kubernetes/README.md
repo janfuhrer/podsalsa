@@ -5,7 +5,7 @@ In this example we will use [Kyverno](https://kyverno.io/) to enforce SLSA verif
 > [!IMPORTANT]
 > The [policy](./kyverno/clusterpolicy-slsa.yaml) describes the **SLSA v1** provenance that GitHub Artifact Attestations produce, and pins the trusted builder `build-image.yml`. It therefore only matches images from **v0.10.0 onwards**.
 >
-> Releases up to v0.9.x carry SLSA v0.2 provenance signed by the `slsa-github-generator` and will be rejected by this policy. The image in [deployment.yaml](./deployment.yaml) still points at such a release, so it needs to be updated to a v0.10.0+ digest before the "valid deployment" step below succeeds. Verifying those older images requires the v0.2 policy shown in [Legacy verification](../../../SECURITY.md#legacy-verification-v09x-and-earlier).
+> Releases up to v0.9.x carry SLSA v0.2 provenance signed by the `slsa-github-generator` and will be rejected by this policy. The image in [deployment.yaml](./deployment.yaml) still points at such a release, so it needs to be updated to a v0.10.0+ digest before the "valid deployment" step below succeeds. Verifying those older images requires the v0.2 policy shown in [Legacy verification](../../../archive/verification-legacy.md).
 >
 > Kyverno must also be able to read attestations stored as OCI 1.1 referrers, which requires `verifyImages[].type: SigstoreBundle` and therefore a current Kyverno release. With the default `type: Cosign` the attestation is not found at all.
 

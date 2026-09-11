@@ -22,7 +22,7 @@ brew install cue
 
 ## SLSA-Verifier (legacy releases only)
 
-Releases up to and including **v0.9.x** were built with the now-deprecated [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) and are verified with the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier) instead of `gh`. You only need this tool to verify those older releases — see [Legacy verification](../../SECURITY.md#legacy-verification-v09x-and-earlier).
+Releases up to and including **v0.9.x** were built with the now-deprecated [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) and are verified with the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier) instead of `gh`. You only need this tool to verify those older releases — see [Legacy verification](../../archive/verification-legacy.md).
 
 ```bash
 brew install slsa-verifier

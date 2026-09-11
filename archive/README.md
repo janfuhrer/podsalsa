@@ -1,32 +1,21 @@
 # Archive
 
-This directory contains not used files but that are kept for historical reasons.
+Superseded approaches, kept for reference. Nothing here is part of the current release
+pipeline — for that, start at [the documentation index](../docs/README.md).
 
 > [!WARNING]
-> The examples below use the [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator), which is no longer maintained, and match the SLSA v0.2 predicate it produced. The release pipeline now uses [GitHub Artifact Attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations) instead — see [the workflow documentation](../.github/workflows/README.md#trusted-builders-and-slsa-build-level-3). Do not copy these files into new projects.
+> Most of this directory predates the migration to [GitHub Artifact Attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations).
+> The examples use the [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator),
+> which is no longer maintained, and match the SLSA **v0.2** predicate it produced.
+> Do not copy these files into new projects.
 
-## Policy controller (Kubernetes enforcement)
+## Contents
 
-This repository [contains an example](../docs/slsa/enforcement-kubernetes/) of how to enforce SLSA verification on the podsalsa image using [Kyverno](https://kyverno.io/).
-Another solution is to use Sigstore's [Policy Controller](https://docs.sigstore.dev/policy-controller/overview/). An example of such a policy is available in the file [policy-controller/clusterimagepolicy.yaml](policy-controller/clusterimagepolicy.yaml). As the Policy Controller is limited to SLSA verification only and is still under active development, it is more convenient to use Kyverno to enforce SLSA verification.
-
-## SLSA GoReleaser Workflow
-
-The [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) repository also provides a GitHub action workflow to build Go binaries and generate provenance metadata. More information can be found in the [README](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md).
-Since we use the [GoReleaser](https://goreleaser.com/) to build the Go binaries, we use the [generic-generator](https://github.com/slsa-framework/slsa-github-generator/tree/main/internal/builders/generic/README.md) to generate the SLSA metadata.
-
-The workflow is available in the [slsa-goreleaser](./slsa-goreleaser/) directory.
-
-## Dockerfile
-
-The [Dockerfile](./Dockerfile) provides a example to build a container image for the podsalsa application with Docker. The image is built using the [multi-stage build](https://docs.docker.com/develop/develop-images/multistage-build/) and uses the [distroless](https://github.com/GoogleContainerTools/distroless) base image.
-
-Since the container images are built using [ko](https://github.com/ko-build/ko), this Dockerfile is not used anymore.
-
-## Makefile
-
-The [Makefile](./Makefile) provides a set of commands to build the container image using the above Dockerfile with sbom and provenance.
-
-## SBOM creation with ko
-
-The first approach to creating SBOMs for the container images was to use `ko`. This approach does not sign the SBOMs and is therefore provides no integrity and authenticity guarantees. The configuration used is described in the file [ko-sbom.md](./ko-sbom.md).
+| File | What it is | Why it is archived |
+| :--- | :--- | :--- |
+| [verification-legacy.md](./verification-legacy.md) | Verifying releases up to **v0.9.x** with `slsa-verifier` | Still accurate for those releases; v0.10.0+ uses [`gh attestation verify`](../SECURITY.md#release-verification) |
+| [policy-controller/](./policy-controller/) | Sigstore [Policy Controller](https://docs.sigstore.dev/policy-controller/overview/) `ClusterImagePolicy` | The Kubernetes example uses [Kyverno](../docs/slsa/enforcement-kubernetes/), which is not limited to SLSA verification |
+| [slsa-goreleaser/](./slsa-goreleaser/) | The SLSA [Go builder](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md) workflow | Superseded by the [trusted builders](../.github/workflows/README.md#trusted-builders-and-slsa-build-level-3) |
+| [ko-sbom.md](./ko-sbom.md) | The first approach to container SBOMs, using `ko` | It produced unsigned SBOMs, so it offered no integrity or authenticity guarantee. `cyclonedx-gomod` is used instead |
+| [Dockerfile](./Dockerfile) | Multi-stage build on a [distroless](https://github.com/GoogleContainerTools/distroless) base | Images are built with [ko](https://ko.build/) |
+| [Makefile](./Makefile) | Builds the image from the archived Dockerfile, with SBOM and provenance | Belongs to the archived Dockerfile |

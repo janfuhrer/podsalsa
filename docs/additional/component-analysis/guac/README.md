@@ -38,7 +38,7 @@ cosign verify-attestation \
   --new-bundle-format \
   --type cyclonedx \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/release.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
+  --certificate-identity-regexp '^https://github.com/janfuhrer/podsalsa/.github/workflows/build-image.yml@refs/tags/v[0-9]+.[0-9]+.[0-9]+(-rc.[0-9]+)?$' \
   $IMAGE | jq -r '.payload' | base64 -d | jq -r '.predicate' > podsalsa-$VERSION.sbom
 ```
 
@@ -54,7 +54,7 @@ Inspect the imported SBOMs:
 guacone query known package "pkg:golang/github.com/janfuhrer/podsalsa@$VERSION"
 ```
 
-![guac-search-package](../../assets/guac/guac-search-package.png)
+![guac-search-package](../../../assets/guac/guac-search-package.png)
 
 ## Mark a package as vulnerable
 
@@ -74,6 +74,6 @@ guacone query bad
 
 This returns a "Visualizer url" which can be opened in a browser to see the affected packages in the `guac-visualizer` running on `localhost:8080`.
 
-![guac-visualizer](../../assets/guac/guac-visualizer.png)
+![guac-visualizer](../../../assets/guac/guac-visualizer.png)
 
 More information can be found in the [GUAC Docs](https://docs.guac.sh/).
