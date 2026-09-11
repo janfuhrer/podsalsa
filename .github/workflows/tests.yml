@@ -1,0 +1,64 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # longer fuzzing run once a week
+    - cron: '15 13 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  unit:
+    name: unit tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+          cache: false
+      # the tests are behind the "unit" build tag, so the tag is required here
+      - name: Run tests
+        run: make go-test
+
+  fuzz:
+    name: fuzz
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+          cache: false
+      # short smoke run on pushes and pull requests, longer on the weekly schedule
+      - name: Run fuzzing
+        env:
+          FUZZTIME: ${{ github.event_name == 'schedule' && '10m' || '60s' }}
+        run: make go-fuzz FUZZTIME="$FUZZTIME"
+      # a crashing input is written to testdata/fuzz/<target>/ — keep it so the
+      # failure can be reproduced and committed as a regression seed
+      - name: Upload failing corpus
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-corpus
+          path: pkg/**/testdata/fuzz/**
+          if-no-files-found: ignore

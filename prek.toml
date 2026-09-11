@@ -40,7 +40,12 @@ rev = "v1.0.0-rc.4"
 hooks = [
   { id = "go-fmt" },
   { id = "go-imports" },
-  { id = "go-test-repo-mod" }
+  {
+    id = "go-test-repo-mod",
+    # the unit tests are behind the "unit" build tag; without it "go test ./..."
+    # silently reports "no test files" and nothing is actually run
+    args = ["-tags", "unit"]
+  }
 ]
 
 [[repos]]
