@@ -1,80 +1,122 @@
 # Kubernetes enforcement with Kyverno
 
-In this example we will use [Kyverno](https://kyverno.io/) to enforce SLSA verification in a Kubernetes cluster. This example uses a local kind cluster to demonstrate the enforcement.
+[Kyverno](https://kyverno.io/) can reject images at admission time unless they carry valid SLSA
+provenance from the trusted builder. This example demonstrates that on a local
+[kind](https://kind.sigs.k8s.io/) cluster.
+
+```mermaid
+flowchart LR
+    dep(["kubectl apply<br/>Deployment"]) --> api["kube-apiserver"]
+    api -->|admission webhook| kv["Kyverno<br/>ImageValidatingPolicy"]
+    kv -->|"fetch provenance referrer"| reg[("ghcr.io")]
+    kv -->|"verify signature"| rekor[("Rekor / Fulcio")]
+    kv -->|"signed by trusted builder<br/>+ contents match policy"| ok(["✅ admitted"])
+    kv -->|"otherwise"| no(["❌ denied"])
+
+    style ok fill:#f0fff4,stroke:#1a7f37
+    style no fill:#fff5f5,stroke:#cf222e
+```
 
 > [!IMPORTANT]
-> The [policy](./kyverno/clusterpolicy-slsa.yaml) describes the **SLSA v1** provenance that GitHub Artifact Attestations produce, and pins the trusted builder `build-image.yml`. It therefore only matches images from **v0.10.0 onwards**.
+> The policies verify **SLSA v1** provenance produced by GitHub Artifact Attestations, and pin the
+> trusted builder `build-image.yml`. They therefore match images from **v0.10.0 onwards**.
+> Releases up to v0.9.x carry SLSA v0.2 provenance from the `slsa-github-generator` and are
+> rejected — verify those with [the legacy instructions](../../../archive/verification-legacy.md).
 >
-> Releases up to v0.9.x carry SLSA v0.2 provenance signed by the `slsa-github-generator` and will be rejected by this policy. The image in [deployment.yaml](./deployment.yaml) still points at such a release, so it needs to be updated to a v0.10.0+ digest before the "valid deployment" step below succeeds. Verifying those older images requires the v0.2 policy shown in [Legacy verification](../../../archive/verification-legacy.md).
->
-> Kyverno must also be able to read attestations stored as OCI 1.1 referrers, which requires `verifyImages[].type: SigstoreBundle` and therefore a current Kyverno release. With the default `type: Cosign` the attestation is not found at all.
+> Requires **Kyverno 1.19.0 or newer**.
 
-> [!NOTE]
-> Kyverno is not GitHub's own recommendation for enforcing artifact attestations — that is the [Sigstore Policy Controller](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/enforce-artifact-attestations), for which GitHub publishes a ready-made `ClusterImagePolicy` and trust root. An example policy-controller configuration is kept in [archive/policy-controller](../../../archive/policy-controller/). We use Kyverno here because it is not limited to SLSA verification, but either tool works.
->
-> One Kyverno detail worth knowing when writing conditions: the variable context is rooted at the **predicate**, not at the in-toto statement. Write `{{ buildDefinition.buildType }}`, not `{{ predicate.buildDefinition.buildType }}`.
+## Which policy to use
+
+| Policy | API | Status |
+| :--- | :--- | :--- |
+| [imagevalidatingpolicy-slsa.yaml](./kyverno/imagevalidatingpolicy-slsa.yaml) | `policies.kyverno.io/v1` | **Recommended.** The current API |
+| [clusterpolicy-slsa.yaml](./kyverno/clusterpolicy-slsa.yaml) | `kyverno.io/v1` | Legacy. `ClusterPolicy` is deprecated as of Kyverno 1.19 and will be removed |
+
+Both express the same checks. Applying the legacy one prints:
+
+```
+Warning: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release;
+migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy
+```
+
+One difference matters if you adapt them. In `ImageValidatingPolicy`, `extractPayload()` returns
+the in-toto **statement**, so fields are addressed below `.predicate`. In the legacy
+`ClusterPolicy`, `conditions` are rooted at the **predicate** itself, so the same field is
+`buildDefinition.buildType` rather than `predicate.buildDefinition.buildType`.
 
 ## Install local kind cluster
 
-Install [kind](https://kind.sigs.k8s.io/) and create a local cluster.
-
 ```bash
-# install kind
 brew install kind
-
-# create local cluster
 kind create cluster
 ```
 
 ## Install Kyverno
 
-We are using [Helm](https://helm.sh/) to install Kyverno in the cluster. The values of the Helmchart are available [here](https://github.com/kyverno/kyverno/tree/main/charts/kyverno). For this example we are using the default values.
-
 ```bash
-# install kyverno
 helm repo add kyverno https://kyverno.github.io/kyverno/
 helm repo update
-helm install kyverno kyverno/kyverno -n kyverno --create-namespace
+helm install kyverno kyverno/kyverno -n kyverno --create-namespace --wait
 
-# verify installation
 kubectl get pods -n kyverno
 ```
 
-## Deploy the application
-
-First, we deploy the [Kyverno policy](./kyverno/clusterpolicy-slsa.yaml) which enforces the SLSA verification for the podsalsa application.
+## Deploy the policy
 
 ```bash
-# install kyverno policies
-curl -sSL https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/kyverno/clusterpolicy-slsa.yaml | kubectl apply -f -
+kubectl apply -f https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/kyverno/imagevalidatingpolicy-slsa.yaml
+
+# confirm it is ready
+kubectl get ivpol
 ```
 
-Next, we deploy the podsalsa application with a valid SLSA verification.
+```
+NAME                             AGE   READY
+verify-slsa-provenance-keyless   9s    true
+```
+
+## A verified image is admitted
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/deployment.yaml | kubectl apply -f -
+kubectl apply -f https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/deployment.yaml
 
 deployment.apps/podsalsa created
 ```
 
-Now, we deploy the podsalsa application with an invalid SLSA verification (version `v0.1.0` has no provenance).
-
 ```bash
-curl -sSL https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/deployment-fail.yaml | kubectl apply -f -
+kubectl get pods
 
-Error from server: error when creating "STDIN": admission webhook "mutate.kyverno.svc-fail" denied the request: 
-
-resource Deployment/default/podsalsa was blocked due to the following policies 
-
-verify-slsa-provenance-keyless:
-  autogen-check-slsa-keyless: 'image attestations verification failed, verifiedCount:
-    0, requiredCount: 1, error: no matching attestations: '
+NAME                        STATUS    IMAGE
+podsalsa-77c9f96c8d-z98ds   Running   ghcr.io/janfuhrer/podsalsa:v0.10.0@sha256:65606217...
 ```
 
-## Cleanup
+## An unverified image is denied
 
-Delete the local kind cluster:
+Version `v0.1.0` was released before provenance existed, so it has none:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/janfuhrer/podsalsa/main/docs/slsa/enforcement-kubernetes/deployment-fail.yaml
+
+Error from server: error when creating "deployment-fail.yaml": admission webhook
+"ivpol.validate.kyverno.svc-fail-finegrained-verify-slsa-provenance-keyless" denied the request:
+Policy verify-slsa-provenance-keyless failed: SLSA provenance is not signed by the trusted
+builder (.github/workflows/build-image.yml at a version tag).
+```
+
+To convince yourself the check is real rather than a rubber stamp, change `build-image.yml` to
+`release.yml` in the policy's `subjectRegExp` and re-apply it. The *valid* image is then denied
+too, because `release.yml` only calls the builder — it never signs.
+
+## Cleanup
 
 ```bash
 kind delete cluster
 ```
+
+## Alternative: Sigstore Policy Controller
+
+Kyverno is not GitHub's own recommendation for enforcing artifact attestations — that is the
+[Sigstore Policy Controller](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/enforce-artifact-attestations),
+for which GitHub publishes a ready-made `ClusterImagePolicy` and trust root. An example
+configuration is kept in [archive/policy-controller](../../../archive/policy-controller/).
+We use Kyverno here because it is not limited to SLSA verification.

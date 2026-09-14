@@ -1,8 +1,12 @@
-defaultBaseImage: cgr.dev/chainguard/static
+# Base image pinned by digest so builds are reproducible and the base cannot change
+# underneath a release. Update it with:
+#   crane digest cgr.dev/chainguard/static:latest
+defaultBaseImage: cgr.dev/chainguard/static@sha256:207a5673ab31ed83332e54ae33d0f1de4adb5984bd93b8309789889e7bf30ba6
 defaultPlatforms:
 # possible values: all, linux/s390x, linux/arm64, linux/arm/v7, linux/ppc64le, linux/amd64
+# note: only platforms provided by the base image can be built. cgr.dev/chainguard/static
+# ships linux/amd64 and linux/arm64 only, and ko silently skips anything else.
 - linux/arm64
-- linux/arm/v7
 - linux/amd64
 builds:
 - id: podsalsa

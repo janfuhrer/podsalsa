@@ -17,6 +17,7 @@ Following workflows are implemented in the repository.
 | [build-binaries.yml](./build-binaries.yml)             | `build`                         | called by `release.yml`                                       | -            | Trusted builder for the go archives (reusable workflow)                                         |
 | [build-image.yml](./build-image.yml)                   | `build`                         | called by `release.yml`                                       | -            | Trusted builder for the container images (reusable workflow)                                    |
 | [release-verification.yml](./release-verification.yml) | see [release chapter](#release) | release published                                             | -            | Verify assets of a new release                                                                  |
+| [tests.yml](./tests.yml)                               | `unit`, `fuzz`                  | push/pr to `main`, cron: `15 13 * * 1`                        | -            | Unit tests and native Go fuzzing of the HTTP handlers                                           |
 | [scorecard.yml](./scorecard.yml)                       | `analyze`                       | push to `main`, cron: `00 14 * * 1`, change branch protection | yes          | Create OpenSSF analysis and create project score                                                |
 
 ## CodeQL
@@ -158,6 +159,21 @@ The multi-arch container images are built using [ko](https://ko.build/) in the [
 To generate a complete SBOM for the container images, the [cyclonedx-gomod](https://github.com/CycloneDX/cyclonedx-gomod) CLI is used instead, pinned in the [Makefile](./../../Makefile) and invoked through the `sbom-container` target.
 
 The SBOMs of the container images are uploaded to a separate package registry (see [SBOM](./../../SECURITY.md#sbom) for more information).
+
+## Tests and fuzzing
+
+The unit tests live behind the `unit` build tag, so a plain `go test ./...` reports
+"no test files" and runs nothing. Use the make targets, which set the tag:
+
+```bash
+make go-test                    # go test -tags unit -race ./...
+make go-fuzz FUZZTIME=60s       # native Go fuzzing of the router
+```
+
+[tests.yml](./tests.yml) runs the unit tests on every push and pull request, and fuzzes the
+HTTP router for 60s. On the weekly schedule the fuzzing runs for 10 minutes instead. If a
+crashing input is found, Go writes it to `pkg/http/testdata/fuzz/<target>/` and the workflow
+uploads it as an artifact — commit that file to turn the crash into a regression seed.
 
 ## Scorecards
 
